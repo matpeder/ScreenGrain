@@ -82,14 +82,23 @@ struct TextureGenerator {
         }
 
         if mode == .filmGrain {
-            samples = correlate(samples, dimension: dimension)
+            // The first divisor preserves white-noise RMS; the second is a unit-gain softening pass.
+            let fine = binomialBlur(samples, dimension: dimension, divisor: 6)
+            let soft = binomialBlur(fine, dimension: dimension, divisor: 16)
+            samples = zip(fine, soft).map { fineSample, softSample in
+                Int32(clamping: (3 * Int64(fineSample) + Int64(softSample)) / 4)
+            }
         }
         return samples
     }
 
-    private static func correlate(_ samples: [Int32], dimension: Int) -> [Int32] {
+    private static func binomialBlur(
+        _ samples: [Int32],
+        dimension: Int,
+        divisor: Int64
+    ) -> [Int32] {
         var horizontal = [Int64](repeating: 0, count: samples.count)
-        var correlated = [Int32](repeating: 0, count: samples.count)
+        var blurred = [Int32](repeating: 0, count: samples.count)
 
         for y in 0..<dimension {
             for x in 0..<dimension {
@@ -106,12 +115,13 @@ struct TextureGenerator {
                 let above = ((y - 1 + dimension) % dimension) * dimension + x
                 let center = y * dimension + x
                 let below = ((y + 1) % dimension) * dimension + x
-                let value = (horizontal[above] + 2 * horizontal[center] + horizontal[below]) / 6
-                correlated[center] = Int32(clamping: value)
+                let value =
+                    (horizontal[above] + 2 * horizontal[center] + horizontal[below]) / divisor
+                blurred[center] = Int32(clamping: value)
             }
         }
 
-        return correlated
+        return blurred
     }
 }
 
@@ -137,4 +147,3 @@ private extension Comparable {
         min(max(self, range.lowerBound), range.upperBound)
     }
 }
-

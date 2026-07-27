@@ -88,8 +88,9 @@ launch.
   conservative floating level. Public collection behaviours let it join all
   Spaces, eligible full-screen Spaces, and Stage Manager app sets.
 - `TextureGenerator` uses SplitMix64 and a 512×512 premultiplied RGBA tile.
-  Noise uses independent samples; Film Grain applies one toroidal 3×3
-  correlation kernel. Generation is deterministic and event-driven.
+  Noise uses independent samples; Film Grain blends a fine toroidal 3×3
+  correlation pass with a softer second scale. Generation is deterministic
+  and event-driven.
 - The control panel is a native AppKit status item and popover. There is no
   SwiftUI, Metal, screen capture, or continuous renderer.
 
