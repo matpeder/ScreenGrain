@@ -1,0 +1,145 @@
+# ScreenGrain
+
+ScreenGrain is a deliberately small, menu-bar-only macOS utility that places
+subtle static noise or film grain over every connected display. It makes smooth
+digital surfaces feel a little more tactile without capturing the screen,
+animating pixels, or requesting privacy permissions.
+
+The texture is generated once from a saved seed and tiled across passive AppKit
+overlay windows. There are no timers, display links, render loops, background
+services, third-party dependencies, networking, or analytics.
+
+## Requirements
+
+- Apple Silicon Mac
+- macOS 14 Sonoma or later
+- Xcode 16 or later to build
+
+## Build and run
+
+Open `ScreenGrain.xcodeproj`, select the `ScreenGrain` scheme and **My Mac**,
+then run.
+
+The equivalent command-line build is:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  xcodebuild \
+  -project ScreenGrain.xcodeproj \
+  -scheme ScreenGrain \
+  -configuration Release \
+  -derivedDataPath /tmp/ScreenGrain-Release \
+  CODE_SIGNING_ALLOWED=NO \
+  build
+```
+
+The unsigned app will be at:
+
+```text
+/tmp/ScreenGrain-Release/Build/Products/Release/ScreenGrain.app
+```
+
+A locally built app normally launches directly. The command above explicitly
+disables signing, so that artifact cannot register with `SMAppService`; to test
+**Launch at Login**, build with signing enabled in Xcode and move that app to
+`/Applications`. If macOS quarantines an unsigned copy downloaded from
+elsewhere, use **Open Anyway** in System Settings → Privacy & Security.
+ScreenGrain v1 does not include Developer ID signing, notarization, an updater,
+or an installer.
+
+Run the tests with:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  xcodebuild \
+  -project ScreenGrain.xcodeproj \
+  -scheme ScreenGrain \
+  -configuration Debug \
+  -derivedDataPath /tmp/ScreenGrain-DerivedData \
+  CODE_SIGNING_ALLOWED=NO \
+  test
+```
+
+## Controls
+
+Click the dotted-circle menu-bar icon to open the control panel.
+
+- **Enabled** immediately shows or hides every overlay.
+- **Mode** switches between fine independent Noise and softly correlated Film
+  Grain.
+- **Preset** applies one of four built-in starting points.
+- **Opacity**, **Grain size**, **Intensity**, and **Character** tune the effect.
+  Character runs from monochrome to subtly coloured grain.
+- **Re-roll** creates and saves a new deterministic seed.
+- **Launch at Login** uses `SMAppService.mainApp`.
+- **Quit ScreenGrain** removes every overlay immediately.
+
+Settings and the seed are stored in `UserDefaults` and restored on the next
+launch.
+
+## Architecture
+
+- `AppModel` owns settings, persistence, login-item changes, and update
+  dispatch.
+- `OverlayCoordinator` re-reads `NSScreen.screens` and reconciles one
+  `OverlayPanel` per stable `CGDirectDisplayID` on launch, display changes,
+  wake, and active-Space changes.
+- Each overlay is a borderless, nonactivating, click-through `NSPanel` at the
+  conservative floating level. Public collection behaviours let it join all
+  Spaces, eligible full-screen Spaces, and Stage Manager app sets.
+- `TextureGenerator` uses SplitMix64 and a 512×512 premultiplied RGBA tile.
+  Noise uses independent samples; Film Grain applies one toroidal 3×3
+  correlation kernel. Generation is deterministic and event-driven.
+- The control panel is a native AppKit status item and popover. There is no
+  SwiftUI, Metal, screen capture, or continuous renderer.
+
+## Capture and other limitations
+
+ScreenGrain may appear in screenshots and screen recordings. Apple now
+documents `NSWindow.SharingType.none` as a legacy value that macOS no longer
+uses, so v1 does not claim unreliable capture exclusion and requests no Screen
+Recording permission.
+
+An independent translucent overlay cannot blend against pixels owned by other
+applications. Balanced light and dark samples remain visible over both light
+and dark backgrounds, but stronger settings can slightly influence perceived
+luminance.
+
+Lock Screen, authentication windows, DRM-protected surfaces, protected system
+UI, and windows above the floating level are best-effort limitations. Full
+screen and Stage Manager behaviour uses public APIs but should be checked on
+each target macOS release. Launch at Login can require approval in System
+Settings and is most reliable after moving the app to `/Applications`.
+
+## Validation checklist
+
+Automated tests cover deterministic output, re-rolling, valid premultiplied
+pixel bounds, approximate neutrality, distinct spatial structure between
+modes, settings persistence, first-launch defaults, and preset mapping.
+
+Complete these GUI checks on the Macs and display arrangements you rely on:
+
+- [ ] Launch, menu-bar presence, and Quit
+- [ ] Enable/disable and every control updating all displays
+- [ ] Clicks and scrolling pass through the entire overlay
+- [ ] Overlay never becomes key and never steals focus
+- [ ] One display and multiple displays
+- [ ] Mixed Retina/non-Retina scaling and mirrored displays
+- [ ] Connect, disconnect, rearrange, and change display resolution
+- [ ] Ordinary full-screen apps and multiple Spaces
+- [ ] Stage Manager
+- [ ] Sleep and wake
+- [ ] Relaunch and state restoration
+- [ ] Launch at Login from an app in `/Applications`
+- [ ] Light, dark, white, and black backgrounds
+- [ ] Screenshot and screen-recording inclusion
+- [ ] Idle CPU, GPU, and memory in Activity Monitor
+
+During development, the Release build was observed at 0.0% sampled idle CPU and
+about 49 MB RSS with two overlay windows on a 2560×1440 display and a 1512×982
+display. This is an informal single-machine observation, not a performance
+guarantee; window-server backing costs vary by display setup.
+
+## License
+
+ScreenGrain is available under the [MIT License](LICENSE).

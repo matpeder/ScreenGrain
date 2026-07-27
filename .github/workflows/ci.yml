@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: |
+          xcodebuild \
+            -project ScreenGrain.xcodeproj \
+            -scheme ScreenGrain \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/ScreenGrain-DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+      - name: Build Release
+        run: |
+          xcodebuild \
+            -project ScreenGrain.xcodeproj \
+            -scheme ScreenGrain \
+            -configuration Release \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/ScreenGrain-Release" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
