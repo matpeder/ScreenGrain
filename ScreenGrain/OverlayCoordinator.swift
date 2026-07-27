@@ -6,7 +6,7 @@ final class OverlayCoordinator {
         let mode: GrainMode
         let seed: UInt64
         let intensity: Double
-        let character: Double
+        let colorMode: GrainColorMode
     }
 
     private var overlays: [CGDirectDisplayID: OverlayPanel] = [:]
@@ -71,7 +71,7 @@ final class OverlayCoordinator {
             mode: currentSettings.mode,
             seed: currentSettings.seed,
             intensity: currentSettings.intensity,
-            character: currentSettings.character
+            colorMode: currentSettings.colorMode
         )
         guard key != textureKey || texture == nil else { return }
 
@@ -79,7 +79,7 @@ final class OverlayCoordinator {
             mode: key.mode,
             seed: key.seed,
             intensity: key.intensity,
-            character: key.character
+            colorMode: key.colorMode
         )
         texture = bitmap.makeCGImage()
         textureKey = key

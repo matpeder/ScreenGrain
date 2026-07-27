@@ -67,9 +67,9 @@ Click the dotted-circle menu-bar icon to open the control panel.
 - **Enabled** immediately shows or hides every overlay.
 - **Mode** switches between fine independent Noise and softly correlated Film
   Grain.
-- **Preset** applies one of four built-in starting points.
-- **Opacity**, **Grain size**, **Intensity**, and **Character** tune the effect.
-  Character runs from monochrome to subtly coloured grain.
+- **Opacity**, **Grain size**, and **Intensity** tune the effect. Opacity and
+  intensity both cover the full 0–100% range.
+- **Color** switches between monochrome and visibly coloured grain.
 - **Re-roll** creates and saves a new deterministic seed.
 - **Launch at Login** uses `SMAppService.mainApp`.
 - **Quit ScreenGrain** removes every overlay immediately.
@@ -85,8 +85,8 @@ launch.
   `OverlayPanel` per stable `CGDirectDisplayID` on launch, display changes,
   wake, and active-Space changes.
 - Each overlay is a borderless, nonactivating, click-through `NSPanel` at the
-  conservative floating level. Public collection behaviours let it join all
-  Spaces, eligible full-screen Spaces, and Stage Manager app sets.
+  lowest level above ordinary pop-up menus. Public collection behaviours let
+  it join all Spaces, eligible full-screen Spaces, and Stage Manager app sets.
 - `TextureGenerator` uses SplitMix64 and a 512×512 premultiplied RGBA tile.
   Noise uses independent samples; Film Grain blends a fine toroidal 3×3
   correlation pass with a softer second scale. Generation is deterministic
@@ -107,16 +107,18 @@ and dark backgrounds, but stronger settings can slightly influence perceived
 luminance.
 
 Lock Screen, authentication windows, DRM-protected surfaces, protected system
-UI, and windows above the floating level are best-effort limitations. Full
-screen and Stage Manager behaviour uses public APIs but should be checked on
-each target macOS release. Launch at Login can require approval in System
-Settings and is most reliable after moving the app to `/Applications`.
+UI, and windows above ScreenGrain's overlay level are best-effort limitations.
+The grain intentionally covers ordinary menus and popovers. Full-screen and
+Stage Manager behaviour uses public APIs but should be checked on each target
+macOS release. Launch at Login can require approval in System Settings and is
+most reliable after moving the app to `/Applications`.
 
 ## Validation checklist
 
 Automated tests cover deterministic output, re-rolling, valid premultiplied
 pixel bounds, approximate neutrality, distinct spatial structure between
-modes, settings persistence, first-launch defaults, and preset mapping.
+modes, settings persistence, first-launch defaults, and legacy-settings
+migration.
 
 Complete these GUI checks on the Macs and display arrangements you rely on:
 

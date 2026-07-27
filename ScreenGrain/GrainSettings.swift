@@ -14,15 +14,30 @@ enum GrainMode: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-struct GrainSettings: Codable, Equatable {
+enum GrainColorMode: String, Codable, CaseIterable {
+    case monochrome
+    case color
+
+    var title: String {
+        switch self {
+        case .monochrome: "Monochrome"
+        case .color: "Color"
+        }
+    }
+}
+
+struct GrainSettings: Equatable {
+    static let opacityRange = 0.0...1.0
+    static let grainSizeRange = 0.65...2.5
+    static let intensityRange = 0.0...1.0
+
     var enabled: Bool
     var mode: GrainMode
     var opacity: Double
     var grainSize: Double
     var intensity: Double
-    var character: Double
+    var colorMode: GrainColorMode
     var seed: UInt64
-    var presetID: String?
     var launchAtLogin: Bool
 
     static let initial = GrainSettings(
@@ -31,42 +46,28 @@ struct GrainSettings: Codable, Equatable {
         opacity: 0.075,
         grainSize: 1.0,
         intensity: 0.58,
-        character: 0.04,
+        colorMode: .monochrome,
         seed: 0x5343_5245_454E_4752,
-        presetID: GrainPreset.whisper.id,
         launchAtLogin: false
     )
 
-    mutating func apply(_ preset: GrainPreset) {
-        mode = preset.mode
-        opacity = preset.opacity
-        grainSize = preset.grainSize
-        intensity = preset.intensity
-        character = preset.character
-        presetID = preset.id
-    }
-
     func sanitized() -> GrainSettings {
         var result = self
-        result.opacity = Self.sanitize(opacity, range: 0.02...0.25, fallback: Self.initial.opacity)
+        result.opacity = Self.sanitize(
+            opacity,
+            range: Self.opacityRange,
+            fallback: Self.initial.opacity
+        )
         result.grainSize = Self.sanitize(
             grainSize,
-            range: 0.65...2.5,
+            range: Self.grainSizeRange,
             fallback: Self.initial.grainSize
         )
         result.intensity = Self.sanitize(
             intensity,
-            range: 0.2...1,
+            range: Self.intensityRange,
             fallback: Self.initial.intensity
         )
-        result.character = Self.sanitize(
-            character,
-            range: 0...1,
-            fallback: Self.initial.character
-        )
-        if let presetID, !GrainPreset.all.contains(where: { $0.id == presetID }) {
-            result.presetID = nil
-        }
         return result
     }
 
@@ -80,59 +81,46 @@ struct GrainSettings: Codable, Equatable {
     }
 }
 
-struct GrainPreset: Identifiable, Equatable {
-    let id: String
-    let name: String
-    let mode: GrainMode
-    let opacity: Double
-    let grainSize: Double
-    let intensity: Double
-    let character: Double
+extension GrainSettings: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case enabled
+        case mode
+        case opacity
+        case grainSize
+        case intensity
+        case colorMode
+        case character
+        case seed
+        case launchAtLogin
+    }
 
-    static let whisper = GrainPreset(
-        id: "whisper",
-        name: "Whisper",
-        mode: .noise,
-        opacity: 0.075,
-        grainSize: 1.0,
-        intensity: 0.58,
-        character: 0.04
-    )
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try values.decode(Bool.self, forKey: .enabled)
+        mode = try values.decode(GrainMode.self, forKey: .mode)
+        opacity = try values.decode(Double.self, forKey: .opacity)
+        grainSize = try values.decode(Double.self, forKey: .grainSize)
+        intensity = try values.decode(Double.self, forKey: .intensity)
+        seed = try values.decode(UInt64.self, forKey: .seed)
+        launchAtLogin = try values.decode(Bool.self, forKey: .launchAtLogin)
 
-    static let fine = GrainPreset(
-        id: "fine",
-        name: "Fine",
-        mode: .noise,
-        opacity: 0.11,
-        grainSize: 0.78,
-        intensity: 0.76,
-        character: 0.0
-    )
+        if let savedMode = try? values.decode(GrainColorMode.self, forKey: .colorMode) {
+            colorMode = savedMode
+        } else {
+            let legacyCharacter = try values.decodeIfPresent(Double.self, forKey: .character) ?? 0
+            colorMode = legacyCharacter < 0.05 ? .monochrome : .color
+        }
+    }
 
-    static let softFilm = GrainPreset(
-        id: "soft-film",
-        name: "Soft Film",
-        mode: .filmGrain,
-        opacity: 0.1,
-        grainSize: 1.35,
-        intensity: 0.62,
-        character: 0.1
-    )
-
-    static let pronounced = GrainPreset(
-        id: "pronounced",
-        name: "Pronounced",
-        mode: .filmGrain,
-        opacity: 0.17,
-        grainSize: 1.8,
-        intensity: 0.82,
-        character: 0.18
-    )
-
-    static let all: [GrainPreset] = [
-        .whisper,
-        .fine,
-        .softFilm,
-        .pronounced,
-    ]
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(enabled, forKey: .enabled)
+        try values.encode(mode, forKey: .mode)
+        try values.encode(opacity, forKey: .opacity)
+        try values.encode(grainSize, forKey: .grainSize)
+        try values.encode(intensity, forKey: .intensity)
+        try values.encode(colorMode, forKey: .colorMode)
+        try values.encode(seed, forKey: .seed)
+        try values.encode(launchAtLogin, forKey: .launchAtLogin)
+    }
 }

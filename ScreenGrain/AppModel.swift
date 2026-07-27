@@ -28,20 +28,10 @@ final class AppModel {
 
     func set<Value>(
         _ keyPath: WritableKeyPath<GrainSettings, Value>,
-        to value: Value,
-        clearsPreset: Bool = true
+        to value: Value
     ) {
         var updated = settings
         updated[keyPath: keyPath] = value
-        if clearsPreset {
-            updated.presetID = nil
-        }
-        commit(updated)
-    }
-
-    func apply(_ preset: GrainPreset) {
-        var updated = settings
-        updated.apply(preset)
         commit(updated)
     }
 

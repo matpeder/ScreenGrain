@@ -5,31 +5,35 @@ final class SettingsViewController: NSViewController {
         case opacity
         case grainSize
         case intensity
-        case character
     }
 
     private let model: AppModel
-    private let enabledToggle = NSButton(checkboxWithTitle: "", target: nil, action: nil)
+    private let enabledToggle = NSSwitch()
     private let modeControl = NSSegmentedControl(
         labels: GrainMode.allCases.map(\.title),
         trackingMode: .selectOne,
         target: nil,
         action: nil
     )
-    private let presetControl = NSPopUpButton()
+    private let colorControl = NSSegmentedControl(
+        labels: GrainColorMode.allCases.map(\.title),
+        trackingMode: .selectOne,
+        target: nil,
+        action: nil
+    )
     private let opacitySlider = NSSlider()
     private let grainSizeSlider = NSSlider()
     private let intensitySlider = NSSlider()
-    private let characterSlider = NSSlider()
     private let seedLabel = NSTextField(labelWithString: "")
-    private let loginToggle = NSButton(checkboxWithTitle: "Launch at Login", target: nil, action: nil)
+    private let loginToggle = NSSwitch()
     private let loginMessage = NSTextField(wrappingLabelWithString: "")
+    private let content = NSStackView()
     private var valueLabels: [SliderKind: NSTextField] = [:]
 
     init(model: AppModel) {
         self.model = model
         super.init(nibName: nil, bundle: nil)
-        preferredContentSize = NSSize(width: 320, height: 510)
+        preferredContentSize = NSSize(width: 320, height: 384)
     }
 
     @available(*, unavailable)
@@ -40,10 +44,9 @@ final class SettingsViewController: NSViewController {
     override func loadView() {
         view = NSView()
 
-        let content = NSStackView()
         content.orientation = .vertical
         content.alignment = .leading
-        content.spacing = 13
+        content.spacing = 11
         content.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(content)
 
@@ -56,13 +59,12 @@ final class SettingsViewController: NSViewController {
 
         content.addArrangedSubview(makeHeader())
         content.addArrangedSubview(makeModeRow())
-        content.addArrangedSubview(makePresetRow())
         content.addArrangedSubview(
             makeSliderRow(
                 title: "Opacity",
                 kind: .opacity,
                 slider: opacitySlider,
-                range: 0.02...0.25
+                range: GrainSettings.opacityRange
             )
         )
         content.addArrangedSubview(
@@ -70,7 +72,7 @@ final class SettingsViewController: NSViewController {
                 title: "Grain size",
                 kind: .grainSize,
                 slider: grainSizeSlider,
-                range: 0.65...2.5
+                range: GrainSettings.grainSizeRange
             )
         )
         content.addArrangedSubview(
@@ -78,23 +80,17 @@ final class SettingsViewController: NSViewController {
                 title: "Intensity",
                 kind: .intensity,
                 slider: intensitySlider,
-                range: 0.2...1
+                range: GrainSettings.intensityRange
             )
         )
-        content.addArrangedSubview(
-            makeSliderRow(
-                title: "Character",
-                kind: .character,
-                slider: characterSlider,
-                range: 0...1
-            )
-        )
+        content.addArrangedSubview(makeColorRow())
         content.addArrangedSubview(makeRerollRow())
         content.addArrangedSubview(NSBox.separator())
 
         loginToggle.target = self
         loginToggle.action = #selector(loginItemChanged)
-        content.addArrangedSubview(loginToggle)
+        loginToggle.setAccessibilityLabel("Launch at Login")
+        content.addArrangedSubview(makeToggleRow(title: "Launch at Login", toggle: loginToggle))
 
         loginMessage.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         loginMessage.textColor = .secondaryLabelColor
@@ -120,17 +116,11 @@ final class SettingsViewController: NSViewController {
         let settings = model.settings
         enabledToggle.state = settings.enabled ? .on : .off
         modeControl.selectedSegment = settings.mode == .noise ? 0 : 1
-
-        if let presetIndex = GrainPreset.all.firstIndex(where: { $0.id == settings.presetID }) {
-            presetControl.selectItem(at: presetIndex + 1)
-        } else {
-            presetControl.selectItem(at: 0)
-        }
+        colorControl.selectedSegment = settings.colorMode == .monochrome ? 0 : 1
 
         opacitySlider.doubleValue = settings.opacity
         grainSizeSlider.doubleValue = settings.grainSize
         intensitySlider.doubleValue = settings.intensity
-        characterSlider.doubleValue = settings.character
         updateValueLabels()
 
         seedLabel.stringValue = String(
@@ -140,25 +130,26 @@ final class SettingsViewController: NSViewController {
         loginToggle.state = settings.launchAtLogin ? .on : .off
         loginMessage.stringValue = model.loginItemMessage ?? ""
         loginMessage.isHidden = model.loginItemMessage == nil
+        content.layoutSubtreeIfNeeded()
+        preferredContentSize = NSSize(
+            width: 320,
+            height: ceil(content.fittingSize.height + 32)
+        )
     }
 
     private func makeHeader() -> NSView {
         let title = NSTextField(labelWithString: "ScreenGrain")
         title.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
-        let subtitle = NSTextField(labelWithString: "Static texture on every display")
-        subtitle.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
-        subtitle.textColor = .secondaryLabelColor
 
-        let text = NSStackView(views: [title, subtitle])
-        text.orientation = .vertical
-        text.alignment = .leading
-        text.spacing = 1
-
-        enabledToggle.setButtonType(.switch)
         enabledToggle.target = self
         enabledToggle.action = #selector(enabledChanged)
+        enabledToggle.setAccessibilityLabel("Enabled")
 
-        let row = NSStackView(views: [text, NSView(), enabledToggle])
+        let row = NSStackView(views: [
+            title,
+            NSView(),
+            makeToggleGroup(title: "Enabled", toggle: enabledToggle),
+        ])
         row.orientation = .horizontal
         row.alignment = .centerY
         stretch(row)
@@ -172,18 +163,41 @@ final class SettingsViewController: NSViewController {
         return modeControl
     }
 
-    private func makePresetRow() -> NSView {
-        presetControl.addItems(withTitles: ["Custom"] + GrainPreset.all.map(\.name))
-        presetControl.target = self
-        presetControl.action = #selector(presetChanged)
-        presetControl.controlSize = .small
+    private func makeColorRow() -> NSView {
+        colorControl.target = self
+        colorControl.action = #selector(colorModeChanged)
+        colorControl.translatesAutoresizingMaskIntoConstraints = false
+        colorControl.widthAnchor.constraint(equalToConstant: 184).isActive = true
 
-        let label = NSTextField(labelWithString: "Preset")
-        let row = NSStackView(views: [label, NSView(), presetControl])
+        let label = NSTextField(labelWithString: "Grain color")
+        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        let row = NSStackView(views: [label, NSView(), colorControl])
         row.orientation = .horizontal
         row.alignment = .centerY
         stretch(row)
         return row
+    }
+
+    private func makeToggleRow(title: String, toggle: NSSwitch) -> NSView {
+        let row = NSStackView(views: [
+            NSTextField(labelWithString: title),
+            NSView(),
+            toggle,
+        ])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        stretch(row)
+        return row
+    }
+
+    private func makeToggleGroup(title: String, toggle: NSSwitch) -> NSView {
+        let label = NSTextField(labelWithString: title)
+        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        let group = NSStackView(views: [label, toggle])
+        group.orientation = .horizontal
+        group.alignment = .centerY
+        group.spacing = 6
+        return group
     }
 
     private func makeSliderRow(
@@ -244,15 +258,14 @@ final class SettingsViewController: NSViewController {
     }
 
     private func updateValueLabels() {
-        valueLabels[.opacity]?.stringValue = "\(Int(opacitySlider.doubleValue * 100))%"
+        valueLabels[.opacity]?.stringValue =
+            "\(Int((opacitySlider.doubleValue * 100).rounded()))%"
         valueLabels[.grainSize]?.stringValue = String(
             format: "%.1f×",
             grainSizeSlider.doubleValue
         )
-        valueLabels[.intensity]?.stringValue = "\(Int(intensitySlider.doubleValue * 100))%"
-        valueLabels[.character]?.stringValue = characterSlider.doubleValue < 0.05
-            ? "Mono"
-            : "\(Int(characterSlider.doubleValue * 100))%"
+        valueLabels[.intensity]?.stringValue =
+            "\(Int((intensitySlider.doubleValue * 100).rounded()))%"
     }
 
     private func stretch(_ view: NSView) {
@@ -261,16 +274,18 @@ final class SettingsViewController: NSViewController {
     }
 
     @objc private func enabledChanged() {
-        model.set(\.enabled, to: enabledToggle.state == .on, clearsPreset: false)
+        model.set(\.enabled, to: enabledToggle.state == .on)
     }
 
     @objc private func modeChanged() {
         model.set(\.mode, to: modeControl.selectedSegment == 0 ? .noise : .filmGrain)
     }
 
-    @objc private func presetChanged() {
-        guard presetControl.indexOfSelectedItem > 0 else { return }
-        model.apply(GrainPreset.all[presetControl.indexOfSelectedItem - 1])
+    @objc private func colorModeChanged() {
+        model.set(
+            \.colorMode,
+            to: colorControl.selectedSegment == 0 ? .monochrome : .color
+        )
     }
 
     @objc private func sliderChanged(_ sender: NSSlider) {
@@ -286,8 +301,6 @@ final class SettingsViewController: NSViewController {
             model.set(\.grainSize, to: sender.doubleValue)
         case .intensity:
             model.set(\.intensity, to: sender.doubleValue)
-        case .character:
-            model.set(\.character, to: sender.doubleValue)
         }
         updateValueLabels()
     }

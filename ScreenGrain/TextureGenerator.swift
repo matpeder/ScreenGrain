@@ -13,7 +13,7 @@ struct TextureGenerator {
         mode: GrainMode,
         seed: UInt64,
         intensity: Double,
-        character: Double,
+        colorMode: GrainColorMode,
         dimension: Int = Self.defaultDimension
     ) -> TextureBitmap {
         precondition(dimension > 1)
@@ -40,7 +40,7 @@ struct TextureGenerator {
         )
 
         let intensityQ = Int64((intensity.clamped(to: 0...1) * 1024).rounded())
-        let chromaQ = Int64((character.clamped(to: 0...1) * 205).rounded())
+        let chromaQ: Int64 = colorMode == .monochrome ? 0 : 768
         var bytes = [UInt8]()
         bytes.reserveCapacity(dimension * dimension * 4)
 
@@ -49,18 +49,19 @@ struct TextureGenerator {
             let dR = ((1024 - chromaQ) * luma + chromaQ * Int64(red[index])) / 1024
             let dG = ((1024 - chromaQ) * luma + chromaQ * Int64(green[index])) / 1024
             let dB = ((1024 - chromaQ) * luma + chromaQ * Int64(blue[index])) / 1024
-            let amplitude = max(abs(dR), abs(dG), abs(dB))
+            let coverageAmplitude = abs(luma)
+            let colorAmplitude = max(abs(dR), abs(dG), abs(dB))
 
-            guard amplitude > 0, intensityQ > 0 else {
+            guard coverageAmplitude > 0, colorAmplitude > 0, intensityQ > 0 else {
                 bytes.append(contentsOf: [0, 0, 0, 0])
                 continue
             }
 
-            let alpha = min(255, amplitude * intensityQ * 255 / (32768 * 1024))
-            let divisor = 2 * amplitude
-            bytes.append(UInt8(clamping: alpha * (amplitude + dR) / divisor))
-            bytes.append(UInt8(clamping: alpha * (amplitude + dG) / divisor))
-            bytes.append(UInt8(clamping: alpha * (amplitude + dB) / divisor))
+            let alpha = min(255, coverageAmplitude * intensityQ * 255 / (32768 * 1024))
+            let divisor = 2 * colorAmplitude
+            bytes.append(UInt8(clamping: alpha * (colorAmplitude + dR) / divisor))
+            bytes.append(UInt8(clamping: alpha * (colorAmplitude + dG) / divisor))
+            bytes.append(UInt8(clamping: alpha * (colorAmplitude + dB) / divisor))
             bytes.append(UInt8(clamping: alpha))
         }
 

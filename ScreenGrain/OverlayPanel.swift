@@ -14,14 +14,14 @@ final class OverlayPanel: NSPanel {
             defer: false
         )
 
-        level = .floating
+        isFloatingPanel = true
+        level = .screenGrainOverlay
         collectionBehavior = [
             .canJoinAllSpaces,
             .canJoinAllApplications,
             .stationary,
             .ignoresCycle,
         ]
-        isFloatingPanel = true
         becomesKeyOnlyIfNeeded = true
         ignoresMouseEvents = true
         acceptsMouseMovedEvents = false
@@ -51,6 +51,10 @@ final class OverlayPanel: NSPanel {
             grainSize: grainSize
         )
     }
+}
+
+extension NSWindow.Level {
+    static let screenGrainOverlay = NSWindow.Level(rawValue: popUpMenu.rawValue + 1)
 }
 
 private final class TiledTextureView: NSView {

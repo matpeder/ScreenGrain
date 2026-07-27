@@ -76,44 +76,49 @@ final class TextureGeneratorTests: XCTestCase {
             mode: .noise,
             seed: 5,
             intensity: 0,
-            character: 0,
+            colorMode: .monochrome,
             dimension: dimension
         )
 
         XCTAssertTrue(bitmap.premultipliedRGBA.allSatisfy { $0 == 0 })
     }
 
-    func testMonochromeHasEqualChannelsAndCharacterAddsSubtleColor() {
+    func testColorModeIsVisiblyMoreColorfulThanMonochrome() {
         let monochrome = generator.generate(
             mode: .noise,
             seed: 5,
             intensity: 0.7,
-            character: 0,
+            colorMode: .monochrome,
             dimension: dimension
         )
         let colored = generator.generate(
             mode: .noise,
             seed: 5,
             intensity: 0.7,
-            character: 1,
+            colorMode: .color,
             dimension: dimension
         )
 
         for index in stride(from: 0, to: monochrome.premultipliedRGBA.count, by: 4) {
             XCTAssertEqual(monochrome.premultipliedRGBA[index], monochrome.premultipliedRGBA[index + 1])
             XCTAssertEqual(monochrome.premultipliedRGBA[index + 1], monochrome.premultipliedRGBA[index + 2])
+            XCTAssertEqual(
+                monochrome.premultipliedRGBA[index + 3],
+                colored.premultipliedRGBA[index + 3]
+            )
         }
-        var containsColor = false
+        var channelDifference = 0
         for index in stride(from: 0, to: colored.premultipliedRGBA.count, by: 4) {
-            let red = colored.premultipliedRGBA[index]
-            let green = colored.premultipliedRGBA[index + 1]
-            let blue = colored.premultipliedRGBA[index + 2]
-            if red != green || green != blue {
-                containsColor = true
-                break
-            }
+            let red = Int(colored.premultipliedRGBA[index])
+            let green = Int(colored.premultipliedRGBA[index + 1])
+            let blue = Int(colored.premultipliedRGBA[index + 2])
+            channelDifference += abs(red - green) + abs(green - blue) + abs(blue - red)
         }
-        XCTAssertTrue(containsColor)
+        let displayedDifference =
+            Double(channelDifference)
+            / Double(dimension * dimension)
+            * GrainSettings.initial.opacity
+        XCTAssertGreaterThan(displayedDifference, 5)
     }
 
     func testTextureIsApproximatelyNeutralOverMidGray() {
@@ -141,7 +146,7 @@ final class TextureGeneratorTests: XCTestCase {
             mode: mode,
             seed: seed,
             intensity: 0.7,
-            character: 0.12,
+            colorMode: .color,
             dimension: dimension
         )
     }
