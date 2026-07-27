@@ -12,6 +12,13 @@
 		A30000000000000000000004 /* TextureGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000006 /* TextureGenerator.swift */; };
 		A30000000000000000000005 /* GrainSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000008 /* GrainSettingsTests.swift */; };
 		A30000000000000000000006 /* TextureGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000009 /* TextureGeneratorTests.swift */; };
+		A30000000000000000000007 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000010 /* AppModel.swift */; };
+		A30000000000000000000008 /* ApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000011 /* ApplicationDelegate.swift */; };
+		A30000000000000000000009 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000012 /* LoginItemService.swift */; };
+		A30000000000000000000010 /* OverlayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000013 /* OverlayCoordinator.swift */; };
+		A30000000000000000000011 /* OverlayPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000014 /* OverlayPanel.swift */; };
+		A30000000000000000000012 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000015 /* SettingsViewController.swift */; };
+		A30000000000000000000013 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000016 /* StatusItemController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,7 +32,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A40000000000000000000001 /* ScreenGrainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenGrainApp.swift; sourceTree = "<group>"; };
+		A40000000000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		A40000000000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A40000000000000000000003 /* ScreenGrain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenGrain.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A40000000000000000000004 /* GrainSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainSettings.swift; sourceTree = "<group>"; };
@@ -34,6 +41,13 @@
 		A40000000000000000000007 /* ScreenGrainTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScreenGrainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A40000000000000000000008 /* GrainSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainSettingsTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000009 /* TextureGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextureGeneratorTests.swift; sourceTree = "<group>"; };
+		A40000000000000000000010 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A40000000000000000000011 /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
+		A40000000000000000000012 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		A40000000000000000000013 /* OverlayCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayCoordinator.swift; sourceTree = "<group>"; };
+		A40000000000000000000014 /* OverlayPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanel.swift; sourceTree = "<group>"; };
+		A40000000000000000000015 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		A40000000000000000000016 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,9 +78,16 @@
 		A60000000000000000000002 /* ScreenGrain */ = {
 			isa = PBXGroup;
 			children = (
-				A40000000000000000000001 /* ScreenGrainApp.swift */,
+				A40000000000000000000010 /* AppModel.swift */,
+				A40000000000000000000011 /* ApplicationDelegate.swift */,
+				A40000000000000000000001 /* main.swift */,
 				A40000000000000000000004 /* GrainSettings.swift */,
+				A40000000000000000000012 /* LoginItemService.swift */,
+				A40000000000000000000013 /* OverlayCoordinator.swift */,
+				A40000000000000000000014 /* OverlayPanel.swift */,
 				A40000000000000000000005 /* SettingsPersistence.swift */,
+				A40000000000000000000015 /* SettingsViewController.swift */,
+				A40000000000000000000016 /* StatusItemController.swift */,
 				A40000000000000000000006 /* TextureGenerator.swift */,
 				A40000000000000000000002 /* Info.plist */,
 			);
@@ -184,9 +205,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A30000000000000000000001 /* ScreenGrainApp.swift in Sources */,
+				A30000000000000000000007 /* AppModel.swift in Sources */,
+				A30000000000000000000008 /* ApplicationDelegate.swift in Sources */,
+				A30000000000000000000001 /* main.swift in Sources */,
 				A30000000000000000000002 /* GrainSettings.swift in Sources */,
+				A30000000000000000000009 /* LoginItemService.swift in Sources */,
+				A30000000000000000000010 /* OverlayCoordinator.swift in Sources */,
+				A30000000000000000000011 /* OverlayPanel.swift in Sources */,
 				A30000000000000000000003 /* SettingsPersistence.swift in Sources */,
+				A30000000000000000000012 /* SettingsViewController.swift in Sources */,
+				A30000000000000000000013 /* StatusItemController.swift in Sources */,
 				A30000000000000000000004 /* TextureGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
