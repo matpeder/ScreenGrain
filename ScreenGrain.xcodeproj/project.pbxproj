@@ -7,16 +7,43 @@
 
 /* Begin PBXBuildFile section */
 		A30000000000000000000001 /* ScreenGrainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* ScreenGrainApp.swift */; };
+		A30000000000000000000002 /* GrainSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000004 /* GrainSettings.swift */; };
+		A30000000000000000000003 /* SettingsPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000005 /* SettingsPersistence.swift */; };
+		A30000000000000000000004 /* TextureGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000006 /* TextureGenerator.swift */; };
+		A30000000000000000000005 /* GrainSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000008 /* GrainSettingsTests.swift */; };
+		A30000000000000000000006 /* TextureGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000009 /* TextureGeneratorTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A90000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A20000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000001;
+			remoteInfo = ScreenGrain;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A40000000000000000000001 /* ScreenGrainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenGrainApp.swift; sourceTree = "<group>"; };
 		A40000000000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A40000000000000000000003 /* ScreenGrain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenGrain.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A40000000000000000000004 /* GrainSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainSettings.swift; sourceTree = "<group>"; };
+		A40000000000000000000005 /* SettingsPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPersistence.swift; sourceTree = "<group>"; };
+		A40000000000000000000006 /* TextureGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextureGenerator.swift; sourceTree = "<group>"; };
+		A40000000000000000000007 /* ScreenGrainTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScreenGrainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A40000000000000000000008 /* GrainSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainSettingsTests.swift; sourceTree = "<group>"; };
+		A40000000000000000000009 /* TextureGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextureGeneratorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A50000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A50000000000000000000004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = ();
@@ -29,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				A60000000000000000000002 /* ScreenGrain */,
+				A60000000000000000000004 /* ScreenGrainTests */,
 				A60000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -37,6 +65,9 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000001 /* ScreenGrainApp.swift */,
+				A40000000000000000000004 /* GrainSettings.swift */,
+				A40000000000000000000005 /* SettingsPersistence.swift */,
+				A40000000000000000000006 /* TextureGenerator.swift */,
 				A40000000000000000000002 /* Info.plist */,
 			);
 			path = ScreenGrain;
@@ -46,8 +77,18 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000003 /* ScreenGrain.app */,
+				A40000000000000000000007 /* ScreenGrainTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A60000000000000000000004 /* ScreenGrainTests */ = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000008 /* GrainSettingsTests.swift */,
+				A40000000000000000000009 /* TextureGeneratorTests.swift */,
+			);
+			path = ScreenGrainTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -68,6 +109,23 @@
 			productReference = A40000000000000000000003 /* ScreenGrain.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A10000000000000000000002 /* ScreenGrainTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000003 /* Build configuration list for PBXNativeTarget "ScreenGrainTests" */;
+			buildPhases = (
+				A50000000000000000000005 /* Sources */,
+				A50000000000000000000004 /* Frameworks */,
+				A50000000000000000000006 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = (
+				A90000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = ScreenGrainTests;
+			productName = ScreenGrainTests;
+			productReference = A40000000000000000000007 /* ScreenGrainTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -80,6 +138,10 @@
 				TargetAttributes = {
 					A10000000000000000000001 = {
 						CreatedOnToolsVersion = 26.1;
+					};
+					A10000000000000000000002 = {
+						CreatedOnToolsVersion = 26.1;
+						TestTargetID = A10000000000000000000001;
 					};
 				};
 			};
@@ -97,12 +159,19 @@
 			projectRoot = "";
 			targets = (
 				A10000000000000000000001 /* ScreenGrain */,
+				A10000000000000000000002 /* ScreenGrainTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A50000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A50000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = ();
@@ -116,10 +185,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000000000000000000001 /* ScreenGrainApp.swift in Sources */,
+				A30000000000000000000002 /* GrainSettings.swift in Sources */,
+				A30000000000000000000003 /* SettingsPersistence.swift in Sources */,
+				A30000000000000000000004 /* TextureGenerator.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A50000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A30000000000000000000005 /* GrainSettingsTests.swift in Sources */,
+				A30000000000000000000006 /* TextureGeneratorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A90000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000001 /* ScreenGrain */;
+			targetProxy = A90000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A80000000000000000000001 /* Debug */ = {
@@ -261,6 +350,36 @@
 			};
 			name = Release;
 		};
+		A80000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matpeder.ScreenGrainTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScreenGrain.app/Contents/MacOS/ScreenGrain";
+			};
+			name = Debug;
+		};
+		A80000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matpeder.ScreenGrainTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScreenGrain.app/Contents/MacOS/ScreenGrain";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -278,6 +397,15 @@
 			buildConfigurations = (
 				A80000000000000000000003 /* Debug */,
 				A80000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000003 /* Build configuration list for PBXNativeTarget "ScreenGrainTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A80000000000000000000005 /* Debug */,
+				A80000000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
