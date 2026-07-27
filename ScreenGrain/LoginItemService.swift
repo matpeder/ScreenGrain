@@ -10,7 +10,7 @@ struct LoginItemService {
         case .requiresApproval:
             "Allow ScreenGrain in System Settings › General › Login Items."
         case .notFound:
-            "Move ScreenGrain to Applications before enabling Launch at Login."
+            "Launch at Login registration is unavailable for this build."
         default:
             nil
         }
@@ -18,7 +18,7 @@ struct LoginItemService {
 
     func setEnabled(_ enabled: Bool) throws {
         if enabled {
-            if status != .enabled {
+            if status != .enabled, status != .requiresApproval {
                 try SMAppService.mainApp.register()
             }
         } else if status != .notRegistered {
@@ -26,4 +26,3 @@ struct LoginItemService {
         }
     }
 }
-

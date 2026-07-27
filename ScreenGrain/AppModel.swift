@@ -77,6 +77,7 @@ final class AppModel {
             updated.launchAtLogin = true
             loginItemMessage = nil
         case .requiresApproval:
+            updated.launchAtLogin = true
             loginItemMessage = loginItemService.message
         case .notFound:
             updated.launchAtLogin = false

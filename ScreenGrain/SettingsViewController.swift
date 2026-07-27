@@ -134,8 +134,8 @@ final class SettingsViewController: NSViewController {
         updateValueLabels()
 
         seedLabel.stringValue = String(
-            format: "%08X",
-            UInt32(truncatingIfNeeded: settings.seed)
+            format: "%016llX",
+            settings.seed
         )
         loginToggle.state = settings.launchAtLogin ? .on : .off
         loginMessage.stringValue = model.loginItemMessage ?? ""

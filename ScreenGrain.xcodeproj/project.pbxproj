@@ -6,7 +6,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A30000000000000000000001 /* ScreenGrainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* ScreenGrainApp.swift */; };
+		A30000000000000000000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* main.swift */; };
 		A30000000000000000000002 /* GrainSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000004 /* GrainSettings.swift */; };
 		A30000000000000000000003 /* SettingsPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000005 /* SettingsPersistence.swift */; };
 		A30000000000000000000004 /* TextureGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000006 /* TextureGenerator.swift */; };
@@ -19,6 +19,7 @@
 		A30000000000000000000011 /* OverlayPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000014 /* OverlayPanel.swift */; };
 		A30000000000000000000012 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000015 /* SettingsViewController.swift */; };
 		A30000000000000000000013 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000016 /* StatusItemController.swift */; };
+		A30000000000000000000014 /* OverlayPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000017 /* OverlayPanelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 		A40000000000000000000014 /* OverlayPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanel.swift; sourceTree = "<group>"; };
 		A40000000000000000000015 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A40000000000000000000016 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+		A40000000000000000000017 /* OverlayPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000008 /* GrainSettingsTests.swift */,
+				A40000000000000000000017 /* OverlayPanelTests.swift */,
 				A40000000000000000000009 /* TextureGeneratorTests.swift */,
 			);
 			path = ScreenGrainTests;
@@ -224,6 +227,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000000000000000000005 /* GrainSettingsTests.swift in Sources */,
+				A30000000000000000000014 /* OverlayPanelTests.swift in Sources */,
 				A30000000000000000000006 /* TextureGeneratorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -243,7 +247,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
-				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -257,6 +260,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -265,7 +269,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
-				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;

@@ -45,6 +45,39 @@ struct GrainSettings: Codable, Equatable {
         character = preset.character
         presetID = preset.id
     }
+
+    func sanitized() -> GrainSettings {
+        var result = self
+        result.opacity = Self.sanitize(opacity, range: 0.02...0.25, fallback: Self.initial.opacity)
+        result.grainSize = Self.sanitize(
+            grainSize,
+            range: 0.65...2.5,
+            fallback: Self.initial.grainSize
+        )
+        result.intensity = Self.sanitize(
+            intensity,
+            range: 0.2...1,
+            fallback: Self.initial.intensity
+        )
+        result.character = Self.sanitize(
+            character,
+            range: 0...1,
+            fallback: Self.initial.character
+        )
+        if let presetID, !GrainPreset.all.contains(where: { $0.id == presetID }) {
+            result.presetID = nil
+        }
+        return result
+    }
+
+    private static func sanitize(
+        _ value: Double,
+        range: ClosedRange<Double>,
+        fallback: Double
+    ) -> Double {
+        guard value.isFinite else { return fallback }
+        return min(max(value, range.lowerBound), range.upperBound)
+    }
 }
 
 struct GrainPreset: Identifiable, Equatable {
@@ -103,4 +136,3 @@ struct GrainPreset: Identifiable, Equatable {
         .pronounced,
     ]
 }
-

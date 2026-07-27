@@ -86,16 +86,22 @@ final class OverlayCoordinator {
     }
 
     private func reconcile() {
+        var screensByDisplayID: [CGDirectDisplayID: NSScreen] = [:]
+        for screen in NSScreen.screens {
+            guard let displayID = screen.directDisplayID else { continue }
+            screensByDisplayID[displayID] = screen
+        }
+
+        for displayID in Set(overlays.keys).subtracting(screensByDisplayID.keys) {
+            overlays.removeValue(forKey: displayID)?.close()
+        }
+
         guard currentSettings.enabled, let texture else {
             overlays.values.forEach { $0.orderOut(nil) }
             return
         }
 
-        var activeDisplayIDs = Set<CGDirectDisplayID>()
-        for screen in NSScreen.screens {
-            guard let displayID = screen.directDisplayID else { continue }
-            activeDisplayIDs.insert(displayID)
-
+        for (displayID, screen) in screensByDisplayID {
             let overlay: OverlayPanel
             if let existing = overlays[displayID] {
                 overlay = existing
@@ -112,10 +118,6 @@ final class OverlayCoordinator {
                 grainSize: currentSettings.grainSize
             )
             overlay.orderFrontRegardless()
-        }
-
-        for displayID in Set(overlays.keys).subtracting(activeDisplayIDs) {
-            overlays.removeValue(forKey: displayID)?.close()
         }
     }
 }

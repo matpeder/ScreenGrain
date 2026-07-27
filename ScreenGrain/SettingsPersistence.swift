@@ -12,7 +12,7 @@ struct SettingsPersistence {
         else {
             return .initial
         }
-        return settings
+        return settings.sanitized()
     }
 
     func save(_ settings: GrainSettings) {
@@ -20,4 +20,3 @@ struct SettingsPersistence {
         defaults.set(data, forKey: Self.storageKey)
     }
 }
-

@@ -47,5 +47,54 @@ final class GrainSettingsTests: XCTestCase {
             XCTAssertEqual(settings.enabled, originalEnabled)
         }
     }
-}
 
+    func testRerollChangesPersistedSeedAndTexture() {
+        let suite = "ScreenGrainTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = AppModel(defaults: defaults)
+        let originalSeed = model.settings.seed
+        let originalTexture = TextureGenerator().generate(
+            mode: model.settings.mode,
+            seed: originalSeed,
+            intensity: model.settings.intensity,
+            character: model.settings.character,
+            dimension: 48
+        )
+
+        model.reroll()
+
+        XCTAssertNotEqual(model.settings.seed, originalSeed)
+        XCTAssertEqual(SettingsPersistence(defaults: defaults).load().seed, model.settings.seed)
+        let rerolledTexture = TextureGenerator().generate(
+            mode: model.settings.mode,
+            seed: model.settings.seed,
+            intensity: model.settings.intensity,
+            character: model.settings.character,
+            dimension: 48
+        )
+        XCTAssertNotEqual(rerolledTexture, originalTexture)
+    }
+
+    func testPersistedVisualValuesAreClampedToUIRanges() {
+        let suite = "ScreenGrainTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let persistence = SettingsPersistence(defaults: defaults)
+        var malformed = GrainSettings.initial
+        malformed.opacity = -10
+        malformed.grainSize = 0
+        malformed.intensity = 20
+        malformed.character = -1
+        malformed.presetID = "removed-preset"
+        persistence.save(malformed)
+
+        let restored = persistence.load()
+
+        XCTAssertEqual(restored.opacity, 0.02)
+        XCTAssertEqual(restored.grainSize, 0.65)
+        XCTAssertEqual(restored.intensity, 1)
+        XCTAssertEqual(restored.character, 0)
+        XCTAssertNil(restored.presetID)
+    }
+}
