@@ -3,16 +3,28 @@ import AppKit
 final class AppModel {
     private(set) var settings: GrainSettings
     private(set) var loginItemMessage: String?
+    private(set) var captureMessage: String?
     var onChange: (() -> Void)?
 
     private let persistence: SettingsPersistence
     private let overlayCoordinator = OverlayCoordinator()
     private let loginItemService = LoginItemService()
+    private let captureShortcutMonitor = CaptureShortcutMonitor()
+    private var captureRestoreWork: DispatchWorkItem?
     private var started = false
 
     init(defaults: UserDefaults = .standard) {
         persistence = SettingsPersistence(defaults: defaults)
         settings = persistence.load()
+        captureShortcutMonitor.onCaptureShortcut = { [weak self] shortcut in
+            self?.handleCaptureShortcut(shortcut)
+        }
+        captureShortcutMonitor.onInteractiveCaptureFinished = { [weak self] in
+            self?.restoreAfterInteractiveCapture()
+        }
+        captureShortcutMonitor.onCaptureCancelled = { [weak self] in
+            self?.restoreAfterCapture()
+        }
     }
 
     func start() {
@@ -20,9 +32,17 @@ final class AppModel {
         started = true
         refreshLoginItemStatus()
         overlayCoordinator.start(settings: settings)
+        if settings.hidesInCaptures, !startCaptureShortcutMonitor(requestingPermission: false) {
+            var updated = settings
+            updated.hidesInCaptures = false
+            commit(updated)
+            captureMessage = "Input Monitoring is no longer allowed, so Hide in Captures was turned off."
+            onChange?()
+        }
     }
 
     func stop() {
+        stopCaptureShortcutMonitor()
         overlayCoordinator.stop()
     }
 
@@ -58,6 +78,28 @@ final class AppModel {
         }
     }
 
+    func setHideInCaptures(_ enabled: Bool) {
+        guard enabled else {
+            stopCaptureShortcutMonitor()
+            set(\.hidesInCaptures, to: false)
+            captureMessage = nil
+            onChange?()
+            return
+        }
+
+        guard startCaptureShortcutMonitor(requestingPermission: true) else {
+            var updated = settings
+            updated.hidesInCaptures = false
+            commit(updated)
+            captureMessage = "Allow Input Monitoring in System Settings, then turn this on again."
+            onChange?()
+            return
+        }
+
+        captureMessage = nil
+        set(\.hidesInCaptures, to: true)
+    }
+
     private func refreshLoginItemStatus() {
         let status = loginItemService.status
         var updated = settings
@@ -84,6 +126,54 @@ final class AppModel {
             persistence.save(updated)
         }
         onChange?()
+    }
+
+    private func startCaptureShortcutMonitor(requestingPermission: Bool) -> Bool {
+        switch captureShortcutMonitor.start(requestingPermission: requestingPermission) {
+        case .started:
+            return true
+        case .permissionRequired:
+            return false
+        }
+    }
+
+    private func stopCaptureShortcutMonitor() {
+        captureRestoreWork?.cancel()
+        captureRestoreWork = nil
+        captureShortcutMonitor.stop()
+        overlayCoordinator.setHiddenForCapture(false)
+    }
+
+    private func handleCaptureShortcut(_ shortcut: CaptureShortcutKind) {
+        guard settings.hidesInCaptures else { return }
+
+        captureRestoreWork?.cancel()
+        captureRestoreWork = nil
+        overlayCoordinator.setHiddenForCapture(true)
+
+        if shortcut == .immediateScreenshot {
+            scheduleCaptureRestore(after: 1)
+        }
+    }
+
+    private func restoreAfterInteractiveCapture() {
+        guard settings.hidesInCaptures else { return }
+        scheduleCaptureRestore(after: 0.6)
+    }
+
+    private func scheduleCaptureRestore(after delay: TimeInterval) {
+        captureRestoreWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.restoreAfterCapture()
+        }
+        captureRestoreWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    private func restoreAfterCapture() {
+        captureRestoreWork?.cancel()
+        captureRestoreWork = nil
+        overlayCoordinator.setHiddenForCapture(false)
     }
 
     private func commit(_ updated: GrainSettings) {

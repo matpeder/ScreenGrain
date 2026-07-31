@@ -20,6 +20,7 @@
 		A30000000000000000000012 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000015 /* SettingsViewController.swift */; };
 		A30000000000000000000013 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000016 /* StatusItemController.swift */; };
 		A30000000000000000000014 /* OverlayPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000017 /* OverlayPanelTests.swift */; };
+		A30000000000000000000015 /* CaptureShortcutMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000018 /* CaptureShortcutMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,7 @@
 		A40000000000000000000015 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A40000000000000000000016 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		A40000000000000000000017 /* OverlayPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanelTests.swift; sourceTree = "<group>"; };
+		A40000000000000000000018 /* CaptureShortcutMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureShortcutMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000010 /* AppModel.swift */,
+				A40000000000000000000018 /* CaptureShortcutMonitor.swift */,
 				A40000000000000000000011 /* ApplicationDelegate.swift */,
 				A40000000000000000000001 /* main.swift */,
 				A40000000000000000000004 /* GrainSettings.swift */,
@@ -209,6 +212,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000000000000000000007 /* AppModel.swift in Sources */,
+				A30000000000000000000015 /* CaptureShortcutMonitor.swift in Sources */,
 				A30000000000000000000008 /* ApplicationDelegate.swift in Sources */,
 				A30000000000000000000001 /* main.swift in Sources */,
 				A30000000000000000000002 /* GrainSettings.swift in Sources */,

@@ -3,6 +3,25 @@ import XCTest
 @testable import ScreenGrain
 
 final class OverlayPanelTests: XCTestCase {
+    func testScreenshotShortcutRecognitionRequiresCommandAndShift() {
+        let screenshotFlags: CGEventFlags = [.maskCommand, .maskShift]
+
+        XCTAssertEqual(
+            CaptureShortcutMonitor.screenshotShortcut(keyCode: 20, flags: screenshotFlags),
+            .immediateScreenshot
+        )
+        XCTAssertEqual(
+            CaptureShortcutMonitor.screenshotShortcut(keyCode: 21, flags: screenshotFlags),
+            .interactiveScreenshot
+        )
+        XCTAssertEqual(
+            CaptureShortcutMonitor.screenshotShortcut(keyCode: 23, flags: screenshotFlags),
+            .captureToolbar
+        )
+        XCTAssertNil(CaptureShortcutMonitor.screenshotShortcut(keyCode: 21, flags: .maskCommand))
+        XCTAssertNil(CaptureShortcutMonitor.screenshotShortcut(keyCode: 0, flags: screenshotFlags))
+    }
+
     func testGrainTileScaleMatchesPhysicalDisplayDensity() throws {
         let retinaDensity = GrainTileScale.backingPixelDensity(
             pixelWidth: 1512,

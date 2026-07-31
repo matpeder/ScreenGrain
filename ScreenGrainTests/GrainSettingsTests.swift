@@ -14,7 +14,7 @@ final class GrainSettingsTests: XCTestCase {
         expected.opacity = 0.19
         expected.colorMode = .color
         expected.seed = 42
-        expected.showsInCaptures = true
+        expected.hidesInCaptures = true
         expected.launchAtLogin = true
 
         persistence.save(expected)
@@ -29,7 +29,7 @@ final class GrainSettingsTests: XCTestCase {
 
         XCTAssertEqual(SettingsPersistence(defaults: defaults).load(), .initial)
         XCTAssertTrue(GrainSettings.initial.enabled)
-        XCTAssertFalse(GrainSettings.initial.showsInCaptures)
+        XCTAssertFalse(GrainSettings.initial.hidesInCaptures)
         XCTAssertFalse(GrainSettings.initial.launchAtLogin)
         XCTAssertEqual(GrainSettings.initial.colorMode, .monochrome)
         XCTAssertEqual(GrainSettings.opacityRange, 0...1)
@@ -40,7 +40,7 @@ final class GrainSettingsTests: XCTestCase {
         for value in [0.0, 0.04] {
             let settings = try decodeLegacySettings(character: value)
             XCTAssertEqual(settings.colorMode, .monochrome)
-            XCTAssertFalse(settings.showsInCaptures)
+            XCTAssertFalse(settings.hidesInCaptures)
         }
         for value in [0.05, 0.1, 0.18, 0.8] {
             XCTAssertEqual(try decodeLegacySettings(character: value).colorMode, .color)
@@ -65,10 +65,10 @@ final class GrainSettingsTests: XCTestCase {
         XCTAssertEqual(settings.colorMode, .color)
     }
 
-    func testPreviousScreenshotPreferenceMigratesToCapturePreference() throws {
+    func testPreviousCapturePreferenceDoesNotEnableInputMonitoring() throws {
         let settings = try decodeLegacySettings(character: 0, screenshotUIVisibility: true)
 
-        XCTAssertTrue(settings.showsInCaptures)
+        XCTAssertFalse(settings.hidesInCaptures)
     }
 
     func testRerollChangesPersistedSeedAndTexture() {
@@ -134,7 +134,7 @@ final class GrainSettingsTests: XCTestCase {
         XCTAssertFalse(labels.contains("Static texture on every display"))
         XCTAssertFalse(labels.contains("Preset"))
         XCTAssertFalse(labels.contains("Character"))
-        XCTAssertTrue(labels.contains("Show in Captures"))
+        XCTAssertTrue(labels.contains("Hide in Captures"))
     }
 
     private func decodeLegacySettings(

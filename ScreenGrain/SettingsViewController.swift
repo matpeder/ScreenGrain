@@ -25,7 +25,8 @@ final class SettingsViewController: NSViewController {
     private let grainSizeSlider = NSSlider()
     private let intensitySlider = NSSlider()
     private let seedLabel = NSTextField(labelWithString: "")
-    private let screenshotToggle = NSSwitch()
+    private let captureHideToggle = NSSwitch()
+    private let captureMessage = NSTextField(wrappingLabelWithString: "")
     private let loginToggle = NSSwitch()
     private let loginMessage = NSTextField(wrappingLabelWithString: "")
     private let content = NSStackView()
@@ -87,11 +88,17 @@ final class SettingsViewController: NSViewController {
         content.addArrangedSubview(makeColorRow())
         content.addArrangedSubview(makeRerollRow())
 
-        screenshotToggle.target = self
-        screenshotToggle.action = #selector(screenshotVisibilityChanged)
-        screenshotToggle.setAccessibilityLabel("Show in Captures")
-        screenshotToggle.toolTip = "Best effort for screenshots, recording, and screen sharing."
-        content.addArrangedSubview(makeToggleRow(title: "Show in Captures", toggle: screenshotToggle))
+        captureHideToggle.target = self
+        captureHideToggle.action = #selector(captureVisibilityChanged)
+        captureHideToggle.setAccessibilityLabel("Hide in Captures")
+        captureHideToggle.toolTip = "Uses Input Monitoring to hide grain for macOS screenshot shortcuts."
+        content.addArrangedSubview(makeToggleRow(title: "Hide in Captures", toggle: captureHideToggle))
+
+        captureMessage.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        captureMessage.textColor = .secondaryLabelColor
+        captureMessage.maximumNumberOfLines = 2
+        stretch(captureMessage)
+        content.addArrangedSubview(captureMessage)
         content.addArrangedSubview(NSBox.separator())
 
         loginToggle.target = self
@@ -134,7 +141,9 @@ final class SettingsViewController: NSViewController {
             format: "%016llX",
             settings.seed
         )
-        screenshotToggle.state = settings.showsInCaptures ? .on : .off
+        captureHideToggle.state = settings.hidesInCaptures ? .on : .off
+        captureMessage.stringValue = model.captureMessage ?? ""
+        captureMessage.isHidden = model.captureMessage == nil
         loginToggle.state = settings.launchAtLogin ? .on : .off
         loginMessage.stringValue = model.loginItemMessage ?? ""
         loginMessage.isHidden = model.loginItemMessage == nil
@@ -317,8 +326,8 @@ final class SettingsViewController: NSViewController {
         model.reroll()
     }
 
-    @objc private func screenshotVisibilityChanged() {
-        model.set(\.showsInCaptures, to: screenshotToggle.state == .on)
+    @objc private func captureVisibilityChanged() {
+        model.setHideInCaptures(captureHideToggle.state == .on)
     }
 
     @objc private func loginItemChanged() {

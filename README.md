@@ -71,6 +71,8 @@ Click the dotted-circle menu-bar icon to open the control panel.
   intensity both cover the full 0–100% range.
 - **Color** switches between monochrome and visibly coloured grain.
 - **Re-roll** creates and saves a new deterministic seed.
+- **Hide in Captures** is off by default. Turning it on asks for Input
+  Monitoring, then hides the overlay for the native macOS screenshot shortcuts.
 - **Launch at Login** uses `SMAppService.mainApp`.
 - **Quit ScreenGrain** removes every overlay immediately.
 
@@ -79,8 +81,8 @@ launch.
 
 ## Architecture
 
-- `AppModel` owns settings, persistence, login-item changes, and update
-  dispatch.
+- `AppModel` owns settings, persistence, login-item changes, capture-shortcut
+  handling, and update dispatch.
 - `OverlayCoordinator` re-reads `NSScreen.screens` and reconciles one
   `OverlayPanel` per stable `CGDirectDisplayID` on launch, display changes,
   wake, and active-Space changes. It combines each display's reported pixel
@@ -98,17 +100,22 @@ launch.
 
 ## Capture and other limitations
 
-**Show in Captures** is off by default. When it is off, ScreenGrain marks its
-windows unavailable for sharing using AppKit's public window-sharing setting.
-This is a best-effort measure, not a guaranteed capture-exclusion contract.
+**Hide in Captures** is off by default. When enabled, ScreenGrain requests
+**Input Monitoring** permission only at that moment. It creates a passive Core
+Graphics event tap that observes `Command-Shift-3`, `Command-Shift-4`, and
+`Command-Shift-5` without modifying or consuming input. This lets ScreenGrain
+hide before the native `Command-Shift-4`, Space window picker appears, so
+ordinary windows can be selected again.
 
-macOS provides no supported app-side way to exclude an arbitrary AppKit overlay
-from another application's recording or screen share. Therefore ScreenGrain
-cannot reliably hide itself from Slack, Google Meet, or other third-party
-sharing apps, and it requests no Screen Recording permission. Apple's
-`NSWindow.SharingType.none` is a legacy value that macOS no longer documents as
-reliable for capture exclusion, so ScreenGrain does not promise cross-app
-coverage.
+macOS offers no public notification that a screenshot has completed or that a
+third-party recording/share has started. ScreenGrain restores after an
+interactive screenshot click or Escape; `Command-Shift-3` uses a short one-shot
+restore delay, and `Command-Shift-5` stays hidden until Escape, disable, or
+quit. It cannot reliably hide itself from Slack, Google Meet, or other
+third-party sharing and recording apps, and it never requests Screen Recording
+or Accessibility permission. `NSWindow.SharingType.none` is a legacy AppKit
+value, not a reliable capture-exclusion mechanism, so ScreenGrain does not use
+it.
 
 An independent translucent overlay cannot blend against pixels owned by other
 applications. Balanced light and dark samples remain visible over both light
@@ -144,7 +151,9 @@ Complete these GUI checks on the Macs and display arrangements you rely on:
 - [ ] Relaunch and state restoration
 - [ ] Launch at Login from an app in `/Applications`
 - [ ] Light, dark, white, and black backgrounds
-- [ ] Screenshot UI and Space-to-select-window behaviour with **Show in Captures** on and off
+- [ ] Turn **Hide in Captures** on and confirm Input Monitoring is requested only then
+- [ ] `Command-Shift-4`, Space window picking, capture click, and Escape with **Hide in Captures** on
+- [ ] `Command-Shift-3` and `Command-Shift-5` with **Hide in Captures** on
 - [ ] Screen recording and third-party sharing behaviour (a known platform limitation)
 - [ ] Idle CPU, GPU, and memory in Activity Monitor
 

@@ -15,6 +15,7 @@ final class OverlayCoordinator {
     private var currentSettings = GrainSettings.initial
     private var textureKey: TextureKey?
     private var texture: CGImage?
+    private var isHiddenForCapture = false
 
     func start(settings: GrainSettings) {
         guard applicationObservers.isEmpty, workspaceObservers.isEmpty else { return }
@@ -65,6 +66,12 @@ final class OverlayCoordinator {
         workspaceObservers.removeAll()
     }
 
+    func setHiddenForCapture(_ isHidden: Bool) {
+        guard isHiddenForCapture != isHidden else { return }
+        isHiddenForCapture = isHidden
+        reconcile()
+    }
+
     private func rebuildTextureIfNeeded() {
         let key = TextureKey(
             mode: currentSettings.mode,
@@ -106,7 +113,7 @@ final class OverlayCoordinator {
             overlays.removeValue(forKey: displayID)?.close()
         }
 
-        guard currentSettings.enabled, let texture else {
+        guard currentSettings.enabled, !isHiddenForCapture, let texture else {
             overlays.values.forEach { $0.orderOut(nil) }
             return
         }
@@ -129,8 +136,7 @@ final class OverlayCoordinator {
                     reference: referenceDensity
                 ),
                 opacity: currentSettings.opacity,
-                grainSize: currentSettings.grainSize,
-                showsInCaptures: currentSettings.showsInCaptures
+                grainSize: currentSettings.grainSize
             )
             overlay.orderFrontRegardless()
         }
