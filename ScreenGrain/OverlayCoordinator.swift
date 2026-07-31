@@ -15,7 +15,6 @@ final class OverlayCoordinator {
     private var currentSettings = GrainSettings.initial
     private var textureKey: TextureKey?
     private var texture: CGImage?
-    private var screenshotUIIsActive = false
 
     func start(settings: GrainSettings) {
         guard applicationObservers.isEmpty, workspaceObservers.isEmpty else { return }
@@ -43,23 +42,6 @@ final class OverlayCoordinator {
                 }
             )
         }
-        for name in [
-            NSWorkspace.didLaunchApplicationNotification,
-            NSWorkspace.didTerminateApplicationNotification,
-            NSWorkspace.didActivateApplicationNotification,
-        ] {
-            workspaceObservers.append(
-                workspaceCenter.addObserver(
-                    forName: name,
-                    object: nil,
-                    queue: .main
-                ) { [weak self] notification in
-                    self?.handleApplicationNotification(notification)
-                }
-            )
-        }
-
-        screenshotUIIsActive = NSWorkspace.shared.runningApplications.contains(where: isScreenshotUI)
         rebuildTextureIfNeeded()
         reconcile()
     }
@@ -124,7 +106,7 @@ final class OverlayCoordinator {
             overlays.removeValue(forKey: displayID)?.close()
         }
 
-        guard currentSettings.enabled, !shouldHideForScreenshotUI, let texture else {
+        guard currentSettings.enabled, let texture else {
             overlays.values.forEach { $0.orderOut(nil) }
             return
         }
@@ -148,7 +130,7 @@ final class OverlayCoordinator {
                 ),
                 opacity: currentSettings.opacity,
                 grainSize: currentSettings.grainSize,
-                showsInScreenshotUI: currentSettings.showsInScreenshotUI
+                showsInCaptures: currentSettings.showsInCaptures
             )
             overlay.orderFrontRegardless()
         }
@@ -164,37 +146,6 @@ final class OverlayCoordinator {
         )
     }
 
-    private var shouldHideForScreenshotUI: Bool {
-        ScreenshotVisibility.shouldHideOverlay(
-            screenshotUIIsActive: screenshotUIIsActive,
-            showsInScreenshotUI: currentSettings.showsInScreenshotUI
-        )
-    }
-
-    private func handleApplicationNotification(_ notification: Notification) {
-        guard
-            let application = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-            isScreenshotUI(application)
-        else {
-            return
-        }
-
-        screenshotUIIsActive = notification.name != NSWorkspace.didTerminateApplicationNotification
-        reconcile()
-    }
-
-    private func isScreenshotUI(_ application: NSRunningApplication) -> Bool {
-        application.bundleIdentifier == "com.apple.screencaptureui"
-    }
-}
-
-enum ScreenshotVisibility {
-    static func shouldHideOverlay(
-        screenshotUIIsActive: Bool,
-        showsInScreenshotUI: Bool
-    ) -> Bool {
-        screenshotUIIsActive && !showsInScreenshotUI
-    }
 }
 
 private extension NSScreen {

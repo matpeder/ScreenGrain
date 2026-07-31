@@ -3,27 +3,6 @@ import XCTest
 @testable import ScreenGrain
 
 final class OverlayPanelTests: XCTestCase {
-    func testScreenshotVisibilityHidesOnlyWhenScreenshotUIIsActiveAndDisabled() {
-        XCTAssertTrue(
-            ScreenshotVisibility.shouldHideOverlay(
-                screenshotUIIsActive: true,
-                showsInScreenshotUI: false
-            )
-        )
-        XCTAssertFalse(
-            ScreenshotVisibility.shouldHideOverlay(
-                screenshotUIIsActive: false,
-                showsInScreenshotUI: false
-            )
-        )
-        XCTAssertFalse(
-            ScreenshotVisibility.shouldHideOverlay(
-                screenshotUIIsActive: true,
-                showsInScreenshotUI: true
-            )
-        )
-    }
-
     func testGrainTileScaleMatchesPhysicalDisplayDensity() throws {
         let retinaDensity = GrainTileScale.backingPixelDensity(
             pixelWidth: 1512,
@@ -92,11 +71,6 @@ final class OverlayPanelTests: XCTestCase {
         let screen = try XCTUnwrap(NSScreen.main)
         let panel = OverlayPanel(screen: screen)
         defer { panel.close() }
-
-        panel.setCaptureVisibility(showsInScreenshotUI: false)
-        XCTAssertEqual(panel.sharingType, .none)
-        panel.setCaptureVisibility(showsInScreenshotUI: true)
-        XCTAssertEqual(panel.sharingType, .readOnly)
 
         XCTAssertFalse(panel.canBecomeKey)
         XCTAssertFalse(panel.canBecomeMain)

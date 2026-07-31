@@ -14,7 +14,7 @@ final class GrainSettingsTests: XCTestCase {
         expected.opacity = 0.19
         expected.colorMode = .color
         expected.seed = 42
-        expected.showsInScreenshotUI = true
+        expected.showsInCaptures = true
         expected.launchAtLogin = true
 
         persistence.save(expected)
@@ -29,7 +29,7 @@ final class GrainSettingsTests: XCTestCase {
 
         XCTAssertEqual(SettingsPersistence(defaults: defaults).load(), .initial)
         XCTAssertTrue(GrainSettings.initial.enabled)
-        XCTAssertFalse(GrainSettings.initial.showsInScreenshotUI)
+        XCTAssertFalse(GrainSettings.initial.showsInCaptures)
         XCTAssertFalse(GrainSettings.initial.launchAtLogin)
         XCTAssertEqual(GrainSettings.initial.colorMode, .monochrome)
         XCTAssertEqual(GrainSettings.opacityRange, 0...1)
@@ -40,7 +40,7 @@ final class GrainSettingsTests: XCTestCase {
         for value in [0.0, 0.04] {
             let settings = try decodeLegacySettings(character: value)
             XCTAssertEqual(settings.colorMode, .monochrome)
-            XCTAssertFalse(settings.showsInScreenshotUI)
+            XCTAssertFalse(settings.showsInCaptures)
         }
         for value in [0.05, 0.1, 0.18, 0.8] {
             XCTAssertEqual(try decodeLegacySettings(character: value).colorMode, .color)
@@ -63,6 +63,12 @@ final class GrainSettingsTests: XCTestCase {
         )
 
         XCTAssertEqual(settings.colorMode, .color)
+    }
+
+    func testPreviousScreenshotPreferenceMigratesToCapturePreference() throws {
+        let settings = try decodeLegacySettings(character: 0, screenshotUIVisibility: true)
+
+        XCTAssertTrue(settings.showsInCaptures)
     }
 
     func testRerollChangesPersistedSeedAndTexture() {
@@ -128,12 +134,13 @@ final class GrainSettingsTests: XCTestCase {
         XCTAssertFalse(labels.contains("Static texture on every display"))
         XCTAssertFalse(labels.contains("Preset"))
         XCTAssertFalse(labels.contains("Character"))
-        XCTAssertTrue(labels.contains("Show in Screenshot UI"))
+        XCTAssertTrue(labels.contains("Show in Captures"))
     }
 
     private func decodeLegacySettings(
         character: Double,
-        colorModeRawValue: String? = nil
+        colorModeRawValue: String? = nil,
+        screenshotUIVisibility: Bool? = nil
     ) throws -> GrainSettings {
         var payload: [String: Any] = [
             "enabled": true,
@@ -146,6 +153,7 @@ final class GrainSettingsTests: XCTestCase {
             "launchAtLogin": false,
         ]
         payload["colorMode"] = colorModeRawValue
+        payload["showsInScreenshotUI"] = screenshotUIVisibility
         let data = try JSONSerialization.data(withJSONObject: payload)
         return try JSONDecoder().decode(GrainSettings.self, from: data)
     }

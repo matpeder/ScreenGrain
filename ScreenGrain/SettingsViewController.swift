@@ -89,9 +89,9 @@ final class SettingsViewController: NSViewController {
 
         screenshotToggle.target = self
         screenshotToggle.action = #selector(screenshotVisibilityChanged)
-        screenshotToggle.setAccessibilityLabel("Show in Screenshot UI")
-        screenshotToggle.toolTip = "Keep grain visible while macOS Screenshot is open."
-        content.addArrangedSubview(makeToggleRow(title: "Show in Screenshot UI", toggle: screenshotToggle))
+        screenshotToggle.setAccessibilityLabel("Show in Captures")
+        screenshotToggle.toolTip = "Best effort for screenshots, recording, and screen sharing."
+        content.addArrangedSubview(makeToggleRow(title: "Show in Captures", toggle: screenshotToggle))
         content.addArrangedSubview(NSBox.separator())
 
         loginToggle.target = self
@@ -134,7 +134,7 @@ final class SettingsViewController: NSViewController {
             format: "%016llX",
             settings.seed
         )
-        screenshotToggle.state = settings.showsInScreenshotUI ? .on : .off
+        screenshotToggle.state = settings.showsInCaptures ? .on : .off
         loginToggle.state = settings.launchAtLogin ? .on : .off
         loginMessage.stringValue = model.loginItemMessage ?? ""
         loginMessage.isHidden = model.loginItemMessage == nil
@@ -318,7 +318,7 @@ final class SettingsViewController: NSViewController {
     }
 
     @objc private func screenshotVisibilityChanged() {
-        model.set(\.showsInScreenshotUI, to: screenshotToggle.state == .on)
+        model.set(\.showsInCaptures, to: screenshotToggle.state == .on)
     }
 
     @objc private func loginItemChanged() {

@@ -98,12 +98,9 @@ launch.
 
 ## Capture and other limitations
 
-**Show in Screenshot UI** is off by default. When it is off, ScreenGrain hides
-while macOS's Screenshot interface is open and restores when it closes. This
-keeps the overlay out of the Space-to-select-window workflow for screenshots.
-It also marks its windows unavailable for sharing using AppKit's public window
-sharing setting. Both are best-effort measures, not a guaranteed capture
-exclusion contract.
+**Show in Captures** is off by default. When it is off, ScreenGrain marks its
+windows unavailable for sharing using AppKit's public window-sharing setting.
+This is a best-effort measure, not a guaranteed capture-exclusion contract.
 
 macOS provides no supported app-side way to exclude an arbitrary AppKit overlay
 from another application's recording or screen share. Therefore ScreenGrain
@@ -147,7 +144,7 @@ Complete these GUI checks on the Macs and display arrangements you rely on:
 - [ ] Relaunch and state restoration
 - [ ] Launch at Login from an app in `/Applications`
 - [ ] Light, dark, white, and black backgrounds
-- [ ] Screenshot UI and Space-to-select-window behaviour with **Show in Screenshot UI** on and off
+- [ ] Screenshot UI and Space-to-select-window behaviour with **Show in Captures** on and off
 - [ ] Screen recording and third-party sharing behaviour (a known platform limitation)
 - [ ] Idle CPU, GPU, and memory in Activity Monitor
 
