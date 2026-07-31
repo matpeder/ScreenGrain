@@ -47,7 +47,7 @@ final class SettingsViewController: NSViewController {
 
         content.orientation = .vertical
         content.alignment = .leading
-        content.spacing = 11
+        content.spacing = 9
         content.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(content)
 
