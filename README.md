@@ -101,16 +101,17 @@ launch.
 **Show in Screenshot UI** is off by default. When it is off, ScreenGrain hides
 while macOS's Screenshot interface is open and restores when it closes. This
 keeps the overlay out of the Space-to-select-window workflow for screenshots.
-It is an event-driven convenience, not general capture exclusion: it cannot
-guarantee exclusion from direct captures that complete before the interface is
-observed.
+It also marks its windows unavailable for sharing using AppKit's public window
+sharing setting. Both are best-effort measures, not a guaranteed capture
+exclusion contract.
 
 macOS provides no supported app-side way to exclude an arbitrary AppKit overlay
 from another application's recording or screen share. Therefore ScreenGrain
 cannot reliably hide itself from Slack, Google Meet, or other third-party
 sharing apps, and it requests no Screen Recording permission. Apple's
-`NSWindow.SharingType.none` is a legacy value that macOS no longer uses for
-capture exclusion; ScreenGrain does not rely on it.
+`NSWindow.SharingType.none` is a legacy value that macOS no longer documents as
+reliable for capture exclusion, so ScreenGrain does not promise cross-app
+coverage.
 
 An independent translucent overlay cannot blend against pixels owned by other
 applications. Balanced light and dark samples remain visible over both light

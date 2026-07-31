@@ -93,6 +93,11 @@ final class OverlayPanelTests: XCTestCase {
         let panel = OverlayPanel(screen: screen)
         defer { panel.close() }
 
+        panel.setCaptureVisibility(showsInScreenshotUI: false)
+        XCTAssertEqual(panel.sharingType, .none)
+        panel.setCaptureVisibility(showsInScreenshotUI: true)
+        XCTAssertEqual(panel.sharingType, .readOnly)
+
         XCTAssertFalse(panel.canBecomeKey)
         XCTAssertFalse(panel.canBecomeMain)
         XCTAssertTrue(panel.ignoresMouseEvents)

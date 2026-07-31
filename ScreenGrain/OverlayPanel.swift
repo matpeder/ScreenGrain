@@ -42,16 +42,22 @@ final class OverlayPanel: NSPanel {
         backingScale: CGFloat,
         densityScale: CGFloat,
         opacity: Double,
-        grainSize: Double
+        grainSize: Double,
+        showsInScreenshotUI: Bool
     ) {
         setFrame(frame, display: false)
         alphaValue = opacity
+        setCaptureVisibility(showsInScreenshotUI: showsInScreenshotUI)
         textureView.update(
             texture: texture,
             backingScale: backingScale,
             densityScale: densityScale,
             grainSize: grainSize
         )
+    }
+
+    func setCaptureVisibility(showsInScreenshotUI: Bool) {
+        sharingType = showsInScreenshotUI ? .readOnly : .none
     }
 }
 

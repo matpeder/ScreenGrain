@@ -147,7 +147,8 @@ final class OverlayCoordinator {
                     reference: referenceDensity
                 ),
                 opacity: currentSettings.opacity,
-                grainSize: currentSettings.grainSize
+                grainSize: currentSettings.grainSize,
+                showsInScreenshotUI: currentSettings.showsInScreenshotUI
             )
             overlay.orderFrontRegardless()
         }
