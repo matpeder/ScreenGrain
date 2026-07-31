@@ -25,6 +25,7 @@ final class SettingsViewController: NSViewController {
     private let grainSizeSlider = NSSlider()
     private let intensitySlider = NSSlider()
     private let seedLabel = NSTextField(labelWithString: "")
+    private let screenshotToggle = NSSwitch()
     private let loginToggle = NSSwitch()
     private let loginMessage = NSTextField(wrappingLabelWithString: "")
     private let content = NSStackView()
@@ -85,6 +86,12 @@ final class SettingsViewController: NSViewController {
         )
         content.addArrangedSubview(makeColorRow())
         content.addArrangedSubview(makeRerollRow())
+
+        screenshotToggle.target = self
+        screenshotToggle.action = #selector(screenshotVisibilityChanged)
+        screenshotToggle.setAccessibilityLabel("Show in Screenshot UI")
+        screenshotToggle.toolTip = "Keep grain visible while macOS Screenshot is open."
+        content.addArrangedSubview(makeToggleRow(title: "Show in Screenshot UI", toggle: screenshotToggle))
         content.addArrangedSubview(NSBox.separator())
 
         loginToggle.target = self
@@ -127,6 +134,7 @@ final class SettingsViewController: NSViewController {
             format: "%016llX",
             settings.seed
         )
+        screenshotToggle.state = settings.showsInScreenshotUI ? .on : .off
         loginToggle.state = settings.launchAtLogin ? .on : .off
         loginMessage.stringValue = model.loginItemMessage ?? ""
         loginMessage.isHidden = model.loginItemMessage == nil
@@ -307,6 +315,10 @@ final class SettingsViewController: NSViewController {
 
     @objc private func reroll() {
         model.reroll()
+    }
+
+    @objc private func screenshotVisibilityChanged() {
+        model.set(\.showsInScreenshotUI, to: screenshotToggle.state == .on)
     }
 
     @objc private func loginItemChanged() {

@@ -14,6 +14,7 @@ final class GrainSettingsTests: XCTestCase {
         expected.opacity = 0.19
         expected.colorMode = .color
         expected.seed = 42
+        expected.showsInScreenshotUI = true
         expected.launchAtLogin = true
 
         persistence.save(expected)
@@ -28,6 +29,7 @@ final class GrainSettingsTests: XCTestCase {
 
         XCTAssertEqual(SettingsPersistence(defaults: defaults).load(), .initial)
         XCTAssertTrue(GrainSettings.initial.enabled)
+        XCTAssertFalse(GrainSettings.initial.showsInScreenshotUI)
         XCTAssertFalse(GrainSettings.initial.launchAtLogin)
         XCTAssertEqual(GrainSettings.initial.colorMode, .monochrome)
         XCTAssertEqual(GrainSettings.opacityRange, 0...1)
@@ -36,7 +38,9 @@ final class GrainSettingsTests: XCTestCase {
 
     func testLegacyCharacterMigratesAtPreviousVisualBoundary() throws {
         for value in [0.0, 0.04] {
-            XCTAssertEqual(try decodeLegacySettings(character: value).colorMode, .monochrome)
+            let settings = try decodeLegacySettings(character: value)
+            XCTAssertEqual(settings.colorMode, .monochrome)
+            XCTAssertFalse(settings.showsInScreenshotUI)
         }
         for value in [0.05, 0.1, 0.18, 0.8] {
             XCTAssertEqual(try decodeLegacySettings(character: value).colorMode, .color)
@@ -118,12 +122,13 @@ final class GrainSettingsTests: XCTestCase {
         XCTAssertEqual(controller.preferredContentSize.width, 320)
         XCTAssertLessThan(controller.preferredContentSize.height, 400)
         let views = descendants(of: controller.view)
-        XCTAssertEqual(views.compactMap { $0 as? NSSwitch }.count, 2)
+        XCTAssertEqual(views.compactMap { $0 as? NSSwitch }.count, 3)
         XCTAssertFalse(views.contains { $0 is NSPopUpButton })
         let labels = views.compactMap { ($0 as? NSTextField)?.stringValue }
         XCTAssertFalse(labels.contains("Static texture on every display"))
         XCTAssertFalse(labels.contains("Preset"))
         XCTAssertFalse(labels.contains("Character"))
+        XCTAssertTrue(labels.contains("Show in Screenshot UI"))
     }
 
     private func decodeLegacySettings(

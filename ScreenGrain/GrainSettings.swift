@@ -38,6 +38,7 @@ struct GrainSettings: Equatable {
     var intensity: Double
     var colorMode: GrainColorMode
     var seed: UInt64
+    var showsInScreenshotUI: Bool
     var launchAtLogin: Bool
 
     static let initial = GrainSettings(
@@ -48,6 +49,7 @@ struct GrainSettings: Equatable {
         intensity: 0.58,
         colorMode: .monochrome,
         seed: 0x5343_5245_454E_4752,
+        showsInScreenshotUI: false,
         launchAtLogin: false
     )
 
@@ -91,6 +93,7 @@ extension GrainSettings: Codable {
         case colorMode
         case character
         case seed
+        case showsInScreenshotUI
         case launchAtLogin
     }
 
@@ -102,6 +105,7 @@ extension GrainSettings: Codable {
         grainSize = try values.decode(Double.self, forKey: .grainSize)
         intensity = try values.decode(Double.self, forKey: .intensity)
         seed = try values.decode(UInt64.self, forKey: .seed)
+        showsInScreenshotUI = try values.decodeIfPresent(Bool.self, forKey: .showsInScreenshotUI) ?? false
         launchAtLogin = try values.decode(Bool.self, forKey: .launchAtLogin)
 
         if let savedMode = try? values.decode(GrainColorMode.self, forKey: .colorMode) {
@@ -121,6 +125,7 @@ extension GrainSettings: Codable {
         try values.encode(intensity, forKey: .intensity)
         try values.encode(colorMode, forKey: .colorMode)
         try values.encode(seed, forKey: .seed)
+        try values.encode(showsInScreenshotUI, forKey: .showsInScreenshotUI)
         try values.encode(launchAtLogin, forKey: .launchAtLogin)
     }
 }
