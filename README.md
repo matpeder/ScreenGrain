@@ -83,7 +83,9 @@ launch.
   dispatch.
 - `OverlayCoordinator` re-reads `NSScreen.screens` and reconciles one
   `OverlayPanel` per stable `CGDirectDisplayID` on launch, display changes,
-  wake, and active-Space changes.
+  wake, and active-Space changes. It combines each display's reported pixel
+  density with its active backing scale so a grain-size setting stays physically
+  consistent across mixed-density and macOS-scaled displays.
 - Each overlay is a borderless, nonactivating, click-through `NSPanel` at the
   lowest level above ordinary pop-up menus. Public collection behaviours let
   it join all Spaces, eligible full-screen Spaces, and Stage Manager app sets.

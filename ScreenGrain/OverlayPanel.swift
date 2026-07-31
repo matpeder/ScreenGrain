@@ -40,6 +40,7 @@ final class OverlayPanel: NSPanel {
         texture: CGImage,
         frame: NSRect,
         backingScale: CGFloat,
+        densityScale: CGFloat,
         opacity: Double,
         grainSize: Double
     ) {
@@ -48,6 +49,7 @@ final class OverlayPanel: NSPanel {
         textureView.update(
             texture: texture,
             backingScale: backingScale,
+            densityScale: densityScale,
             grainSize: grainSize
         )
     }
@@ -57,15 +59,60 @@ extension NSWindow.Level {
     static let screenGrainOverlay = NSWindow.Level(rawValue: popUpMenu.rawValue + 1)
 }
 
+enum GrainTileScale {
+    static func backingPixelDensity(
+        pixelWidth: Int,
+        pixelHeight: Int,
+        physicalSize: CGSize,
+        backingScale: CGFloat
+    ) -> CGFloat? {
+        guard physicalSize.width > 0, physicalSize.height > 0, backingScale > 0 else { return nil }
+
+        let horizontal = CGFloat(pixelWidth) / physicalSize.width * backingScale
+        let vertical = CGFloat(pixelHeight) / physicalSize.height * backingScale
+        guard horizontal.isFinite, vertical.isFinite, horizontal > 0, vertical > 0 else {
+            return nil
+        }
+        return (horizontal + vertical) / 2
+    }
+
+    static func relativeDensity(display: CGFloat?, reference: CGFloat?) -> CGFloat {
+        guard let display, let reference, display > 0, reference > 0 else { return 1 }
+        return min(display / reference, 1)
+    }
+
+    static func tileSide(
+        textureWidth: Int,
+        backingScale: CGFloat,
+        densityScale: CGFloat,
+        grainSize: Double
+    ) -> CGFloat {
+        guard backingScale > 0 else { return CGFloat(textureWidth) * CGFloat(grainSize) }
+        return CGFloat(textureWidth) / backingScale * densityScale * CGFloat(grainSize)
+    }
+}
+
 private final class TiledTextureView: NSView {
     private var texture: CGImage?
     private var tileSide: CGFloat = 256
+    private var shouldSmoothDownsample = false
 
     override var isOpaque: Bool { false }
 
-    func update(texture: CGImage, backingScale: CGFloat, grainSize: Double) {
+    func update(
+        texture: CGImage,
+        backingScale: CGFloat,
+        densityScale: CGFloat,
+        grainSize: Double
+    ) {
         self.texture = texture
-        tileSide = CGFloat(texture.width) / backingScale * CGFloat(grainSize)
+        tileSide = GrainTileScale.tileSide(
+            textureWidth: texture.width,
+            backingScale: backingScale,
+            densityScale: densityScale,
+            grainSize: grainSize
+        )
+        shouldSmoothDownsample = densityScale < 1
         needsDisplay = true
     }
 
@@ -74,7 +121,7 @@ private final class TiledTextureView: NSView {
 
         context.saveGState()
         context.setShouldAntialias(false)
-        context.interpolationQuality = .none
+        context.interpolationQuality = shouldSmoothDownsample ? .medium : .none
 
         let startX = floor(dirtyRect.minX / tileSide) * tileSide
         let startY = floor(dirtyRect.minY / tileSide) * tileSide

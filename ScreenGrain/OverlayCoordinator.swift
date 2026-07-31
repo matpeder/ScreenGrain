@@ -91,6 +91,17 @@ final class OverlayCoordinator {
             guard let displayID = screen.directDisplayID else { continue }
             screensByDisplayID[displayID] = screen
         }
+        let densitiesByDisplayID = screensByDisplayID.reduce(into: [CGDirectDisplayID: CGFloat]()) {
+            densities,
+            entry in
+            if let density = displayPixelDensity(
+                for: entry.key,
+                backingScale: entry.value.backingScaleFactor
+            ) {
+                densities[entry.key] = density
+            }
+        }
+        let referenceDensity = densitiesByDisplayID.values.max()
 
         for displayID in Set(overlays.keys).subtracting(screensByDisplayID.keys) {
             overlays.removeValue(forKey: displayID)?.close()
@@ -114,11 +125,25 @@ final class OverlayCoordinator {
                 texture: texture,
                 frame: screen.frame,
                 backingScale: screen.backingScaleFactor,
+                densityScale: GrainTileScale.relativeDensity(
+                    display: densitiesByDisplayID[displayID],
+                    reference: referenceDensity
+                ),
                 opacity: currentSettings.opacity,
                 grainSize: currentSettings.grainSize
             )
             overlay.orderFrontRegardless()
         }
+    }
+
+    private func displayPixelDensity(for displayID: CGDirectDisplayID, backingScale: CGFloat) -> CGFloat? {
+        let size = CGDisplayScreenSize(displayID)
+        return GrainTileScale.backingPixelDensity(
+            pixelWidth: CGDisplayPixelsWide(displayID),
+            pixelHeight: CGDisplayPixelsHigh(displayID),
+            physicalSize: size,
+            backingScale: backingScale
+        )
     }
 }
 
