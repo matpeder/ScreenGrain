@@ -5,9 +5,9 @@
 For an opt-in screenshot workaround, use a Core Graphics event tap created with
 `.listenOnly`, not an `NSEvent` global monitor. The tap can observe only the
 keyboard and pointer events needed to recognise the standard screenshot
-shortcuts, while returning every event unchanged. This makes **Input
-Monitoring** the only additional privacy permission required by this approach;
-it does not need Accessibility or Screen Recording access.
+shortcuts, while returning every event unchanged. Current SDK documentation
+also requires **Accessibility** trust for a session event tap to receive key
+events, alongside **Input Monitoring**. It does not need Screen Recording.
 
 It is necessarily a best-effort workaround for the system screenshot UI. It
 can hide ScreenGrain when the user invokes the standard screenshot shortcuts;
@@ -23,14 +23,18 @@ available from macOS 10.15, so they are available on ScreenGrain's macOS 14
 target.
 
 Call the request function only after the user turns on **Hide in captures**.
-If the request is denied, keep the preference off and explain that Input
-Monitoring is needed for the screenshot shortcut workaround. Do not request
-the permission at launch or while the preference is off.
+If the request is denied, keep the user's opt-in preference enabled and explain
+that Accessibility and Input Monitoring are needed for the screenshot shortcut
+workaround. Re-check when ScreenGrain becomes active after System Settings; do
+not request either permission at launch or while the preference is off.
 
-Apple calls this scope **Input Monitoring**. It grants monitoring of keyboard,
-mouse, and trackpad input while another app is active; users manage it in
-System Settings > Privacy & Security > Input Monitoring. It is distinct from
-Screen Recording and Accessibility.
+Apple calls the listening scope **Input Monitoring**. It grants monitoring of
+keyboard, mouse, and trackpad input while another app is active; users manage
+it in System Settings > Privacy & Security > Input Monitoring. The SDK's
+event-tap contract separately requires the process to be trusted for
+**Accessibility** to receive global key events; users manage that in System
+Settings > Privacy & Security > Accessibility. Both are distinct from Screen
+Recording.
 
 Sources:
 

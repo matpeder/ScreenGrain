@@ -91,7 +91,7 @@ final class SettingsViewController: NSViewController {
         captureHideToggle.target = self
         captureHideToggle.action = #selector(captureVisibilityChanged)
         captureHideToggle.setAccessibilityLabel("Hide in Captures")
-        captureHideToggle.toolTip = "Uses Input Monitoring to hide grain for macOS screenshot shortcuts."
+        captureHideToggle.toolTip = "Uses Accessibility and Input Monitoring for macOS screenshot shortcuts."
         content.addArrangedSubview(makeToggleRow(title: "Hide in Captures", toggle: captureHideToggle))
 
         captureMessage.font = .systemFont(ofSize: NSFont.smallSystemFontSize)

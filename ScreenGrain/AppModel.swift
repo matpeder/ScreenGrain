@@ -11,6 +11,7 @@ final class AppModel {
     private let loginItemService = LoginItemService()
     private let captureShortcutMonitor = CaptureShortcutMonitor()
     private var captureRestoreWork: DispatchWorkItem?
+    private var applicationActivationObserver: NSObjectProtocol?
     private var started = false
 
     init(defaults: UserDefaults = .standard) {
@@ -32,17 +33,22 @@ final class AppModel {
         started = true
         refreshLoginItemStatus()
         overlayCoordinator.start(settings: settings)
-        if settings.hidesInCaptures, !startCaptureShortcutMonitor(requestingPermission: false) {
-            var updated = settings
-            updated.hidesInCaptures = false
-            commit(updated)
-            captureMessage = "Input Monitoring is no longer allowed, so Hide in Captures was turned off."
-            onChange?()
+        applicationActivationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.refreshCaptureShortcutMonitor(requestingPermission: false)
         }
+        refreshCaptureShortcutMonitor(requestingPermission: false)
     }
 
     func stop() {
         stopCaptureShortcutMonitor()
+        if let applicationActivationObserver {
+            NotificationCenter.default.removeObserver(applicationActivationObserver)
+        }
+        applicationActivationObserver = nil
         overlayCoordinator.stop()
     }
 
@@ -87,17 +93,8 @@ final class AppModel {
             return
         }
 
-        guard startCaptureShortcutMonitor(requestingPermission: true) else {
-            var updated = settings
-            updated.hidesInCaptures = false
-            commit(updated)
-            captureMessage = "Allow Input Monitoring in System Settings, then turn this on again."
-            onChange?()
-            return
-        }
-
-        captureMessage = nil
         set(\.hidesInCaptures, to: true)
+        refreshCaptureShortcutMonitor(requestingPermission: true)
     }
 
     private func refreshLoginItemStatus() {
@@ -128,12 +125,18 @@ final class AppModel {
         onChange?()
     }
 
-    private func startCaptureShortcutMonitor(requestingPermission: Bool) -> Bool {
+    private func refreshCaptureShortcutMonitor(requestingPermission: Bool) {
+        guard settings.hidesInCaptures else { return }
+
         switch captureShortcutMonitor.start(requestingPermission: requestingPermission) {
         case .started:
-            return true
-        case .permissionRequired:
-            return false
+            setCaptureMessage("Ready for macOS screenshot shortcuts.")
+        case .permissionsRequired:
+            setCaptureMessage(
+                "Allow Accessibility and Input Monitoring, then return to ScreenGrain."
+            )
+        case .unavailable:
+            setCaptureMessage("ScreenGrain could not start its screenshot listener.")
         }
     }
 
@@ -174,6 +177,12 @@ final class AppModel {
         captureRestoreWork?.cancel()
         captureRestoreWork = nil
         overlayCoordinator.setHiddenForCapture(false)
+    }
+
+    private func setCaptureMessage(_ message: String?) {
+        guard captureMessage != message else { return }
+        captureMessage = message
+        onChange?()
     }
 
     private func commit(_ updated: GrainSettings) {

@@ -69,7 +69,11 @@ final class OverlayCoordinator {
     func setHiddenForCapture(_ isHidden: Bool) {
         guard isHiddenForCapture != isHidden else { return }
         isHiddenForCapture = isHidden
-        reconcile()
+        if isHidden {
+            overlays.values.forEach { $0.orderOut(nil) }
+        } else {
+            reconcile()
+        }
     }
 
     private func rebuildTextureIfNeeded() {

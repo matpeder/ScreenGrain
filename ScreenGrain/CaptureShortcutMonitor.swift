@@ -1,3 +1,4 @@
+import ApplicationServices
 import CoreGraphics
 import Foundation
 
@@ -10,7 +11,8 @@ enum CaptureShortcutKind: Equatable {
 final class CaptureShortcutMonitor {
     enum StartResult {
         case started
-        case permissionRequired
+        case permissionsRequired
+        case unavailable
     }
 
     var onCaptureShortcut: ((CaptureShortcutKind) -> Void)?
@@ -23,10 +25,21 @@ final class CaptureShortcutMonitor {
 
     func start(requestingPermission: Bool) -> StartResult {
         guard eventTap == nil else { return .started }
-        let hasPermission = CGPreflightListenEventAccess()
-            || (requestingPermission && CGRequestListenEventAccess())
-        guard hasPermission else {
-            return .permissionRequired
+
+        let canListen = CGPreflightListenEventAccess()
+        let isAccessibilityTrusted = AXIsProcessTrusted()
+        if !canListen || !isAccessibilityTrusted {
+            guard requestingPermission else { return .permissionsRequired }
+
+            if !canListen {
+                CGRequestListenEventAccess()
+            }
+            if !isAccessibilityTrusted {
+                AXIsProcessTrustedWithOptions([
+                    kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true,
+                ] as CFDictionary)
+            }
+            return .permissionsRequired
         }
 
         let eventMask = (CGEventMask(1) << CGEventType.keyDown.rawValue)
@@ -39,7 +52,7 @@ final class CaptureShortcutMonitor {
             callback: Self.eventTapCallback,
             userInfo: Unmanaged.passUnretained(self).toOpaque()
         ) else {
-            return .permissionRequired
+            return .unavailable
         }
 
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)

@@ -71,8 +71,9 @@ Click the dotted-circle menu-bar icon to open the control panel.
   intensity both cover the full 0–100% range.
 - **Color** switches between monochrome and visibly coloured grain.
 - **Re-roll** creates and saves a new deterministic seed.
-- **Hide in Captures** is off by default. Turning it on asks for Input
-  Monitoring, then hides the overlay for the native macOS screenshot shortcuts.
+- **Hide in Captures** is off by default. Turning it on asks for Accessibility
+  and Input Monitoring, then hides the overlay for native macOS screenshot
+  shortcuts.
 - **Launch at Login** uses `SMAppService.mainApp`.
 - **Quit ScreenGrain** removes every overlay immediately.
 
@@ -101,11 +102,13 @@ launch.
 ## Capture and other limitations
 
 **Hide in Captures** is off by default. When enabled, ScreenGrain requests
-**Input Monitoring** permission only at that moment. It creates a passive Core
-Graphics event tap that observes `Command-Shift-3`, `Command-Shift-4`, and
+**Accessibility** and **Input Monitoring** only at that moment. Both are
+required by macOS for the passive Core Graphics event tap to observe global
+key-down events. It observes `Command-Shift-3`, `Command-Shift-4`, and
 `Command-Shift-5` without modifying or consuming input. This lets ScreenGrain
 hide before the native `Command-Shift-4`, Space window picker appears, so
-ordinary windows can be selected again.
+ordinary windows can be selected again. If macOS sends you to System Settings,
+leave the switch enabled; ScreenGrain starts listening when you return.
 
 macOS offers no public notification that a screenshot has completed or that a
 third-party recording/share has started. ScreenGrain restores after an
@@ -151,7 +154,7 @@ Complete these GUI checks on the Macs and display arrangements you rely on:
 - [ ] Relaunch and state restoration
 - [ ] Launch at Login from an app in `/Applications`
 - [ ] Light, dark, white, and black backgrounds
-- [ ] Turn **Hide in Captures** on and confirm Input Monitoring is requested only then
+- [ ] Turn **Hide in Captures** on and confirm Accessibility and Input Monitoring are requested only then
 - [ ] `Command-Shift-4`, Space window picking, capture click, and Escape with **Hide in Captures** on
 - [ ] `Command-Shift-3` and `Command-Shift-5` with **Hide in Captures** on
 - [ ] Screen recording and third-party sharing behaviour (a known platform limitation)
