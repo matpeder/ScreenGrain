@@ -11,6 +11,7 @@ final class AppModel {
     private let loginItemService = LoginItemService()
     private let captureShortcutMonitor = CaptureShortcutMonitor()
     private var captureRestoreWork: DispatchWorkItem?
+    private var lastDetectedCaptureShortcut: CaptureShortcutKind?
     private var applicationActivationObserver: NSObjectProtocol?
     private var started = false
 
@@ -19,6 +20,9 @@ final class AppModel {
         settings = persistence.load()
         captureShortcutMonitor.onCaptureShortcut = { [weak self] shortcut in
             self?.handleCaptureShortcut(shortcut)
+        }
+        captureShortcutMonitor.onCaptureShortcutPreparation = { [weak self] in
+            self?.hideForCapture()
         }
         captureShortcutMonitor.onInteractiveCaptureFinished = { [weak self] in
             self?.restoreAfterInteractiveCapture()
@@ -88,6 +92,7 @@ final class AppModel {
         guard enabled else {
             stopCaptureShortcutMonitor()
             set(\.hidesInCaptures, to: false)
+            lastDetectedCaptureShortcut = nil
             captureMessage = nil
             onChange?()
             return
@@ -95,6 +100,10 @@ final class AppModel {
 
         set(\.hidesInCaptures, to: true)
         refreshCaptureShortcutMonitor(requestingPermission: true)
+    }
+
+    func refreshCaptureShortcutStatus() {
+        refreshCaptureShortcutMonitor(requestingPermission: false)
     }
 
     private func refreshLoginItemStatus() {
@@ -130,7 +139,11 @@ final class AppModel {
 
         switch captureShortcutMonitor.start(requestingPermission: requestingPermission) {
         case .started:
-            setCaptureMessage("Ready for macOS screenshot shortcuts.")
+            if let lastDetectedCaptureShortcut {
+                setCaptureMessage("Last detected \(lastDetectedCaptureShortcut.title). Ready for the next one.")
+            } else {
+                setCaptureMessage("Ready — waiting for a macOS screenshot shortcut.")
+            }
         case .permissionsRequired:
             setCaptureMessage(
                 "Allow Accessibility and Input Monitoring, then return to ScreenGrain."
@@ -150,13 +163,19 @@ final class AppModel {
     private func handleCaptureShortcut(_ shortcut: CaptureShortcutKind) {
         guard settings.hidesInCaptures else { return }
 
-        captureRestoreWork?.cancel()
-        captureRestoreWork = nil
-        overlayCoordinator.setHiddenForCapture(true)
+        hideForCapture()
+        lastDetectedCaptureShortcut = shortcut
 
         if shortcut == .immediateScreenshot {
             scheduleCaptureRestore(after: 1)
         }
+    }
+
+    private func hideForCapture() {
+        guard settings.hidesInCaptures else { return }
+        captureRestoreWork?.cancel()
+        captureRestoreWork = nil
+        overlayCoordinator.setHiddenForCapture(true)
     }
 
     private func restoreAfterInteractiveCapture() {
@@ -193,5 +212,15 @@ final class AppModel {
             overlayCoordinator.apply(settings: updated)
         }
         onChange?()
+    }
+}
+
+private extension CaptureShortcutKind {
+    var title: String {
+        switch self {
+        case .immediateScreenshot: "⌘⇧3"
+        case .interactiveScreenshot: "⌘⇧4"
+        case .captureToolbar: "⌘⇧5"
+        }
     }
 }

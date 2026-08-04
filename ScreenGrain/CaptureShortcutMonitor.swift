@@ -16,12 +16,14 @@ final class CaptureShortcutMonitor {
     }
 
     var onCaptureShortcut: ((CaptureShortcutKind) -> Void)?
+    var onCaptureShortcutPreparation: (() -> Void)?
     var onInteractiveCaptureFinished: (() -> Void)?
     var onCaptureCancelled: (() -> Void)?
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var activeShortcut: CaptureShortcutKind?
+    private var isPreparingScreenshotShortcut = false
 
     func start(requestingPermission: Bool) -> StartResult {
         guard eventTap == nil else { return .started }
@@ -44,6 +46,7 @@ final class CaptureShortcutMonitor {
 
         let eventMask = (CGEventMask(1) << CGEventType.keyDown.rawValue)
             | (CGEventMask(1) << CGEventType.leftMouseUp.rawValue)
+            | (CGEventMask(1) << CGEventType.flagsChanged.rawValue)
         guard let eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -73,6 +76,7 @@ final class CaptureShortcutMonitor {
         eventTap = nil
         runLoopSource = nil
         activeShortcut = nil
+        isPreparingScreenshotShortcut = false
     }
 
     private static let eventTapCallback: CGEventTapCallBack = { _, type, event, userInfo in
@@ -90,6 +94,8 @@ final class CaptureShortcutMonitor {
             }
         case .keyDown:
             handleKeyDown(event)
+        case .flagsChanged:
+            handleFlagsChanged(event)
         case .leftMouseUp:
             if activeShortcut == .interactiveScreenshot {
                 activeShortcut = nil
@@ -116,11 +122,24 @@ final class CaptureShortcutMonitor {
         }
 
         activeShortcut = shortcut
+        isPreparingScreenshotShortcut = false
         onCaptureShortcut?(shortcut)
     }
 
+    private func handleFlagsChanged(_ event: CGEvent) {
+        let isHoldingScreenshotModifiers = Self.hasScreenshotModifiers(event.flags)
+
+        if isHoldingScreenshotModifiers, activeShortcut == nil, !isPreparingScreenshotShortcut {
+            isPreparingScreenshotShortcut = true
+            onCaptureShortcutPreparation?()
+        } else if !isHoldingScreenshotModifiers, activeShortcut == nil, isPreparingScreenshotShortcut {
+            isPreparingScreenshotShortcut = false
+            onCaptureCancelled?()
+        }
+    }
+
     static func screenshotShortcut(keyCode: Int64, flags: CGEventFlags) -> CaptureShortcutKind? {
-        guard flags.contains(.maskCommand), flags.contains(.maskShift) else { return nil }
+        guard hasScreenshotModifiers(flags) else { return nil }
 
         switch keyCode {
         case 20: return .immediateScreenshot
@@ -128,5 +147,9 @@ final class CaptureShortcutMonitor {
         case 23: return .captureToolbar
         default: return nil
         }
+    }
+
+    static func hasScreenshotModifiers(_ flags: CGEventFlags) -> Bool {
+        flags.contains(.maskCommand) && flags.contains(.maskShift)
     }
 }

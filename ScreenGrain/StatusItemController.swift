@@ -39,6 +39,7 @@ final class StatusItemController: NSObject {
         if popover.isShown {
             popover.performClose(nil)
         } else {
+            model.refreshCaptureShortcutStatus()
             refresh()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }

@@ -22,6 +22,14 @@ final class OverlayPanelTests: XCTestCase {
         XCTAssertNil(CaptureShortcutMonitor.screenshotShortcut(keyCode: 0, flags: screenshotFlags))
     }
 
+    func testScreenshotModifierRecognitionRequiresCommandAndShift() {
+        let screenshotFlags: CGEventFlags = [.maskCommand, .maskShift]
+
+        XCTAssertTrue(CaptureShortcutMonitor.hasScreenshotModifiers(screenshotFlags))
+        XCTAssertFalse(CaptureShortcutMonitor.hasScreenshotModifiers(.maskCommand))
+        XCTAssertFalse(CaptureShortcutMonitor.hasScreenshotModifiers(.maskShift))
+    }
+
     func testGrainTileScaleMatchesPhysicalDisplayDensity() throws {
         let retinaDensity = GrainTileScale.backingPixelDensity(
             pixelWidth: 1512,
