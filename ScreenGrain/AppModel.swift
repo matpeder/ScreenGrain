@@ -44,7 +44,7 @@ final class AppModel {
         ) { [weak self] _ in
             self?.refreshCaptureShortcutMonitor(requestingPermission: false)
         }
-        refreshCaptureShortcutMonitor(requestingPermission: true)
+        refreshCaptureShortcutMonitor(requestingPermission: false)
     }
 
     func stop() {
@@ -103,9 +103,7 @@ final class AppModel {
     }
 
     func refreshCaptureShortcutStatus() {
-        // Replacing a locally ad-hoc-signed build can invalidate an existing
-        // TCC grant. Re-request only while this opt-in feature is enabled.
-        refreshCaptureShortcutMonitor(requestingPermission: true)
+        refreshCaptureShortcutMonitor(requestingPermission: false)
     }
 
     private func refreshLoginItemStatus() {
@@ -154,8 +152,11 @@ final class AppModel {
             } else {
                 setCaptureMessage(listenerDescription)
             }
-        case .accessibilityRequired:
-            setCaptureMessage("Allow Accessibility, then return to ScreenGrain.")
+        case .accessibilityRequired(let inputMonitoringGranted):
+            let inputMonitoringStatus = inputMonitoringGranted ? "granted" : "not granted"
+            setCaptureMessage(
+                "Accessibility is not available to this installed copy (Input Monitoring: \(inputMonitoringStatus))."
+            )
         case .unavailable:
             setCaptureMessage("ScreenGrain could not start its screenshot listener.")
         }

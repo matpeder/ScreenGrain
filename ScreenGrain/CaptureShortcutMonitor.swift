@@ -12,7 +12,7 @@ enum CaptureShortcutKind: Equatable {
 final class CaptureShortcutMonitor {
     enum StartResult {
         case started(Strategy)
-        case accessibilityRequired
+        case accessibilityRequired(inputMonitoringGranted: Bool)
         case unavailable
     }
 
@@ -51,7 +51,7 @@ final class CaptureShortcutMonitor {
             if !canListen, requestingPermission {
                 CGRequestListenEventAccess()
             }
-            return .accessibilityRequired
+            return .accessibilityRequired(inputMonitoringGranted: canListen)
         }
 
         // This public AppKit monitor backs up the Quartz event tap when it is

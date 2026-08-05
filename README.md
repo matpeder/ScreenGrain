@@ -109,8 +109,9 @@ tap for a second, lower-level signal. Neither monitor modifies or consumes
 input. They observe `Command-Shift-3`, `Command-Shift-4`, and
 `Command-Shift-5`, and ScreenGrain starts hiding as soon as Command-Shift is
 held so the native `Command-Shift-4`, Space window picker can select ordinary
-windows again. If macOS sends you to System Settings, leave the switch enabled;
-ScreenGrain retries when you return.
+windows again. If macOS sends you to System Settings, return to ScreenGrain
+after granting access; toggle **Hide in Captures** off and on if macOS needs a
+fresh request.
 
 macOS offers no public notification that a screenshot has completed or that a
 third-party recording/share has started. ScreenGrain restores after an
