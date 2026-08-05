@@ -44,7 +44,7 @@ final class AppModel {
         ) { [weak self] _ in
             self?.refreshCaptureShortcutMonitor(requestingPermission: false)
         }
-        refreshCaptureShortcutMonitor(requestingPermission: false)
+        refreshCaptureShortcutMonitor(requestingPermission: true)
     }
 
     func stop() {
