@@ -103,7 +103,9 @@ final class AppModel {
     }
 
     func refreshCaptureShortcutStatus() {
-        refreshCaptureShortcutMonitor(requestingPermission: false)
+        // Replacing a locally ad-hoc-signed build can invalidate an existing
+        // TCC grant. Re-request only while this opt-in feature is enabled.
+        refreshCaptureShortcutMonitor(requestingPermission: true)
     }
 
     private func refreshLoginItemStatus() {
@@ -138,16 +140,22 @@ final class AppModel {
         guard settings.hidesInCaptures else { return }
 
         switch captureShortcutMonitor.start(requestingPermission: requestingPermission) {
-        case .started:
-            if let lastDetectedCaptureShortcut {
-                setCaptureMessage("Last detected \(lastDetectedCaptureShortcut.title). Ready for the next one.")
-            } else {
-                setCaptureMessage("Ready — waiting for a macOS screenshot shortcut.")
+        case .started(let strategy):
+            let listenerDescription: String
+            switch strategy {
+            case .eventTapAndGlobalMonitor:
+                listenerDescription = "Ready — waiting for a macOS screenshot shortcut."
+            case .globalMonitor:
+                listenerDescription = "Ready through Accessibility monitoring."
             }
-        case .permissionsRequired:
-            setCaptureMessage(
-                "Allow Accessibility and Input Monitoring, then return to ScreenGrain."
-            )
+
+            if let lastDetectedCaptureShortcut {
+                setCaptureMessage("Last detected \(lastDetectedCaptureShortcut.title). \(listenerDescription)")
+            } else {
+                setCaptureMessage(listenerDescription)
+            }
+        case .accessibilityRequired:
+            setCaptureMessage("Allow Accessibility, then return to ScreenGrain.")
         case .unavailable:
             setCaptureMessage("ScreenGrain could not start its screenshot listener.")
         }

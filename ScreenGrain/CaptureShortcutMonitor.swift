@@ -1,3 +1,4 @@
+import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
@@ -10,9 +11,14 @@ enum CaptureShortcutKind: Equatable {
 
 final class CaptureShortcutMonitor {
     enum StartResult {
-        case started
-        case permissionsRequired
+        case started(Strategy)
+        case accessibilityRequired
         case unavailable
+    }
+
+    enum Strategy {
+        case eventTapAndGlobalMonitor
+        case globalMonitor
     }
 
     var onCaptureShortcut: ((CaptureShortcutKind) -> Void)?
@@ -22,27 +28,48 @@ final class CaptureShortcutMonitor {
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var globalMonitor: Any?
     private var activeShortcut: CaptureShortcutKind?
     private var isPreparingScreenshotShortcut = false
 
     func start(requestingPermission: Bool) -> StartResult {
-        guard eventTap == nil else { return .started }
+        if eventTap != nil, globalMonitor != nil {
+            return .started(.eventTapAndGlobalMonitor)
+        }
+        if globalMonitor != nil {
+            return .started(.globalMonitor)
+        }
 
         let canListen = CGPreflightListenEventAccess()
         let isAccessibilityTrusted = AXIsProcessTrusted()
-        if !canListen || !isAccessibilityTrusted {
-            guard requestingPermission else { return .permissionsRequired }
-
-            if !canListen {
-                CGRequestListenEventAccess()
-            }
-            if !isAccessibilityTrusted {
+        if !isAccessibilityTrusted {
+            if requestingPermission {
                 AXIsProcessTrustedWithOptions([
                     kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true,
                 ] as CFDictionary)
             }
-            return .permissionsRequired
+            if !canListen, requestingPermission {
+                CGRequestListenEventAccess()
+            }
+            return .accessibilityRequired
         }
+
+        // This public AppKit monitor backs up the Quartz event tap when it is
+        // denied or temporarily unavailable. It observes the same shortcut
+        // without ever altering the original event.
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.keyDown, .leftMouseUp, .flagsChanged]
+        ) { [weak self] event in
+            self?.handleGlobalEvent(event)
+        }
+
+        guard globalMonitor != nil else { return .unavailable }
+
+        if !canListen, requestingPermission {
+            CGRequestListenEventAccess()
+        }
+
+        guard canListen else { return .started(.globalMonitor) }
 
         let eventMask = (CGEventMask(1) << CGEventType.keyDown.rawValue)
             | (CGEventMask(1) << CGEventType.leftMouseUp.rawValue)
@@ -54,16 +81,14 @@ final class CaptureShortcutMonitor {
             eventsOfInterest: eventMask,
             callback: Self.eventTapCallback,
             userInfo: Unmanaged.passUnretained(self).toOpaque()
-        ) else {
-            return .unavailable
-        }
+        ) else { return .started(.globalMonitor) }
 
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: eventTap, enable: true)
         self.eventTap = eventTap
         runLoopSource = source
-        return .started
+        return .started(.eventTapAndGlobalMonitor)
     }
 
     func stop() {
@@ -75,6 +100,10 @@ final class CaptureShortcutMonitor {
         }
         eventTap = nil
         runLoopSource = nil
+        if let globalMonitor {
+            NSEvent.removeMonitor(globalMonitor)
+        }
+        globalMonitor = nil
         activeShortcut = nil
         isPreparingScreenshotShortcut = false
     }
@@ -97,17 +126,33 @@ final class CaptureShortcutMonitor {
         case .flagsChanged:
             handleFlagsChanged(event)
         case .leftMouseUp:
-            if activeShortcut == .interactiveScreenshot {
-                activeShortcut = nil
-                onInteractiveCaptureFinished?()
-            }
+            finishInteractiveCapture()
+        default:
+            break
+        }
+    }
+
+    private func handleGlobalEvent(_ event: NSEvent) {
+        switch event.type {
+        case .keyDown:
+            handleKeyDown(keyCode: Int64(event.keyCode), flags: event.cgFlags)
+        case .flagsChanged:
+            handleFlagsChanged(flags: event.cgFlags)
+        case .leftMouseUp:
+            finishInteractiveCapture()
         default:
             break
         }
     }
 
     private func handleKeyDown(_ event: CGEvent) {
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+        handleKeyDown(
+            keyCode: event.getIntegerValueField(.keyboardEventKeycode),
+            flags: event.flags
+        )
+    }
+
+    private func handleKeyDown(keyCode: Int64, flags: CGEventFlags) {
         if keyCode == 53, activeShortcut != nil {
             activeShortcut = nil
             onCaptureCancelled?()
@@ -116,7 +161,7 @@ final class CaptureShortcutMonitor {
 
         guard let shortcut = Self.screenshotShortcut(
             keyCode: keyCode,
-            flags: event.flags
+            flags: flags
         ) else {
             return
         }
@@ -127,7 +172,11 @@ final class CaptureShortcutMonitor {
     }
 
     private func handleFlagsChanged(_ event: CGEvent) {
-        let isHoldingScreenshotModifiers = Self.hasScreenshotModifiers(event.flags)
+        handleFlagsChanged(flags: event.flags)
+    }
+
+    private func handleFlagsChanged(flags: CGEventFlags) {
+        let isHoldingScreenshotModifiers = Self.hasScreenshotModifiers(flags)
 
         if isHoldingScreenshotModifiers, activeShortcut == nil, !isPreparingScreenshotShortcut {
             isPreparingScreenshotShortcut = true
@@ -135,6 +184,13 @@ final class CaptureShortcutMonitor {
         } else if !isHoldingScreenshotModifiers, activeShortcut == nil, isPreparingScreenshotShortcut {
             isPreparingScreenshotShortcut = false
             onCaptureCancelled?()
+        }
+    }
+
+    private func finishInteractiveCapture() {
+        if activeShortcut == .interactiveScreenshot {
+            activeShortcut = nil
+            onInteractiveCaptureFinished?()
         }
     }
 
@@ -151,5 +207,11 @@ final class CaptureShortcutMonitor {
 
     static func hasScreenshotModifiers(_ flags: CGEventFlags) -> Bool {
         flags.contains(.maskCommand) && flags.contains(.maskShift)
+    }
+}
+
+private extension NSEvent {
+    var cgFlags: CGEventFlags {
+        CGEventFlags(rawValue: UInt64(modifierFlags.rawValue))
     }
 }

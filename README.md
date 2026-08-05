@@ -71,9 +71,9 @@ Click the dotted-circle menu-bar icon to open the control panel.
   intensity both cover the full 0–100% range.
 - **Color** switches between monochrome and visibly coloured grain.
 - **Re-roll** creates and saves a new deterministic seed.
-- **Hide in Captures** is off by default. Turning it on asks for Accessibility
-  and Input Monitoring, then hides the overlay for native macOS screenshot
-  shortcuts.
+- **Hide in Captures** is off by default. Turning it on requests Accessibility
+  and Input Monitoring if needed, then hides the overlay for native macOS
+  screenshot shortcuts.
 - **Launch at Login** uses `SMAppService.mainApp`.
 - **Quit ScreenGrain** removes every overlay immediately.
 
@@ -102,21 +102,23 @@ launch.
 ## Capture and other limitations
 
 **Hide in Captures** is off by default. When enabled, ScreenGrain requests
-**Accessibility** and **Input Monitoring** only at that moment. Both are
-required by macOS for the passive Core Graphics event tap to observe global
-key-down events. It observes `Command-Shift-3`, `Command-Shift-4`, and
-`Command-Shift-5` without modifying or consuming input. This lets ScreenGrain
-hide before the native `Command-Shift-4`, Space window picker appears, so
-ordinary windows can be selected again. If macOS sends you to System Settings,
-leave the switch enabled; ScreenGrain starts listening when you return.
+**Accessibility** and **Input Monitoring** only at that moment, when macOS
+needs them. Accessibility enables a passive AppKit global monitor; when Input
+Monitoring is also available, ScreenGrain adds a passive Core Graphics event
+tap for a second, lower-level signal. Neither monitor modifies or consumes
+input. They observe `Command-Shift-3`, `Command-Shift-4`, and
+`Command-Shift-5`, and ScreenGrain starts hiding as soon as Command-Shift is
+held so the native `Command-Shift-4`, Space window picker can select ordinary
+windows again. If macOS sends you to System Settings, leave the switch enabled;
+ScreenGrain retries when you return.
 
 macOS offers no public notification that a screenshot has completed or that a
 third-party recording/share has started. ScreenGrain restores after an
 interactive screenshot click or Escape; `Command-Shift-3` uses a short one-shot
 restore delay, and `Command-Shift-5` stays hidden until Escape, disable, or
 quit. It cannot reliably hide itself from Slack, Google Meet, or other
-third-party sharing and recording apps, and it never requests Screen Recording
-or Accessibility permission. `NSWindow.SharingType.none` is a legacy AppKit
+third-party sharing and recording apps, and it never requests Screen Recording.
+`NSWindow.SharingType.none` is a legacy AppKit
 value, not a reliable capture-exclusion mechanism, so ScreenGrain does not use
 it.
 
